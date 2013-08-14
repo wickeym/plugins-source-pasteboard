@@ -1,0 +1,143 @@
+local function copyFile( options )
+	local _sourceFile = options.sourceFile or error( "idUtils:copyFile - options.sourceFile is either nil or omitted" )
+	local _sourcePath = options.sourcePath or error( "idUtils:copyFile - options.sourcePath is either nil or omitted" )
+	local _destinationFile = options.destinationFile or error( "idUtils:copyFile - options.destinationFile is either nil or omitted" )
+	local _destinationPath = options.destinationPath	or error( "idUtils:copyFile - options.destinationPath is either nil or omitted" )
+    
+	-- Assume copy went ok
+	local results = true
+
+    -- Copy the source file to the destination file
+    local readPath = system.pathForFile( _sourceFile, _sourcePath )
+    local writePath = system.pathForFile( _destinationFile, _destinationPath )
+ 
+    local readHandle = io.open( readPath, "rb" ) --Ensure this is ok..          
+    local writeHandle = io.open( writePath, "wb" ) --Ensure this is ok..
+        
+    if not writeHandle then
+        error( "idUtils:copyFile - Problem opening write file path" )
+        results = false
+    else
+        -- Read the file from the source directory and write it to the destination directory
+        local data = readHandle:read( "*a" )
+         
+		-- Check if we were able to read the data file
+        if not data then
+            error( "idUtils:copyFile - Problem reading data!" )
+            results = false
+        else
+            if not writeHandle:write( data ) then
+                print( "idUtils:copyFile - Problem writing data!" ) 
+                results = false
+            end
+        end
+    end
+        
+    -- Clean up our file handles
+    readHandle:close()
+    readHandle = nil
+    writeHandle:close()
+    writeHandle = nil
+ 
+	return results  
+end
+
+--------------------------------------------------
+
+
+-- Require the plugin library
+local pasteboard = require "plugin.pasteboard"
+
+-- Constants (Set the constant you would like to test to true)
+local TEST_STRING_COPY = false
+local TEST_URL_COPY = false
+local TEST_IMAGE_COPY = false
+
+-- Query the type of data on the pasteboard
+local pType = pasteboard.queryType()
+
+-- Print the data type
+print( "Type of data on pasteboard is:", pType )
+
+-- Callback function for the paste method
+local function onPaste( event )
+	if "table" == type( event ) then
+		for k, v in pairs( event ) do
+			print( k, v )
+		end
+	end
+	
+	-- Paste an image
+	if event.fileName then
+		print( "IMAGE" )
+		local img = display.newImageRect( event.filename, event.baseDir, 300, 300 )
+		img.x = display.contentCenterX
+		img.y = display.contentCenterY
+	end
+	
+	-- Paste a string
+	if event.string then
+		print( "STRING" )
+		local text = display.newText( event.string, 0, 0, native.systemFontBold, 16 )
+		text.x = display.contentCenterX
+		text.y = display.contentCenterY
+	end
+	
+	-- Paste a url
+	if event.url then
+		print( "URL" )
+		local webView = native.newWebView( 0, 0, display.contentWidth, display.contentHeight )
+		webView:request( event.url )
+	end
+end
+
+
+-- Copy a file to the temporary directory (for testing)
+copyFile( 
+{ 
+	sourceFile = "Icon.png",
+	sourcePath = system.ResourceDirectory,
+	destinationFile = "tempTest.png",
+	destinationPath = system.TemporaryDirectory,
+})
+
+
+-- Copy a file to the caches directory (for testing)
+copyFile( 
+{ 
+	sourceFile = "Icon.png",
+	sourcePath = system.ResourceDirectory,
+	destinationFile = "cacheTest.png",
+	destinationPath = system.CachesDirectory,
+})
+
+-- Copy a file to the documents directory (for testing)
+copyFile( 
+{ 
+	sourceFile = "Icon.png",
+	sourcePath = system.ResourceDirectory,
+	destinationFile = "docsTest.png",
+	destinationPath = system.DocumentsDirectory,
+})
+
+
+-- Test image copy to pasteboard
+if TEST_IMAGE_COPY then
+	--pasteboard.copy( "image", "Icon.png", system.ResourceDirectory )
+	--pasteboard.copy( "image", "docsTest.png", system.DocumentsDirectory )
+	--pasteboard.copy( "image", "tempTest.png", system.TemporaryDirectory )
+	--pasteboard.copy( "image", "tempTest.png", system.CachesDirectory )
+end
+
+-- Test copying a string to the pasteboard
+if TEST_STRING_COPY then
+	pasteboard.copy( "string", "Hello Corona World!" )
+end
+
+-- Test copying a url to the pasteboard
+if TEST_URL_COPY then
+	pasteboard.copy( "url", "http://www.coronalabs.com" )
+end
+
+-- Paste whatever is on the clipboard
+pasteboard.paste( onPaste )
