@@ -46,22 +46,22 @@
 		A4C2449B1683FA5300C395D1 /* AdSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4C244981683FA5300C395D1 /* AdSupport.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		A4C2449C1683FA5300C395D1 /* Social.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4C244991683FA5300C395D1 /* Social.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		A4E2537F166AE3DC00DCDC2C /* Twitter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4E2537E166AE3DC00DCDC2C /* Twitter.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		A4E253E5166DE7E000DCDC2C /* libclipboard.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A4E253E2166DE7C800DCDC2C /* libclipboard.a */; };
+		A4E253E5166DE7E000DCDC2C /* libplugin_library.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A4E253E2166DE7C800DCDC2C /* libplugin_library.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		30C76F14178DA1ED00C1DF48 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A4E253DA166DE7C800DCDC2C /* Plugin.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = A4E253B5166D6FB300DCDC2C;
-			remoteInfo = iTunesLibrary;
-		};
 		A4E253E1166DE7C800DCDC2C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A4E253DA166DE7C800DCDC2C /* Plugin.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = A4E253B6166D6FB300DCDC2C;
+			remoteInfo = plugin_library;
+		};
+		A4E253E3166DE7D800DCDC2C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A4E253DA166DE7C800DCDC2C /* Plugin.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = A4E253B5166D6FB300DCDC2C;
 			remoteInfo = plugin_library;
 		};
 /* End PBXContainerItemProxy section */
@@ -73,8 +73,8 @@
 		A447B6651666FD02009EA762 /* MainWindow.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = MainWindow.xib; path = CoronaEnterprise/Corona/ios/resource/MainWindow.xib; sourceTree = SOURCE_ROOT; };
 		A447B6691666FD43009EA762 /* CoronaSDK3rdPartyLicenses.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = CoronaSDK3rdPartyLicenses.txt; path = CoronaEnterprise/Corona/shared/resource/CoronaSDK3rdPartyLicenses.txt; sourceTree = SOURCE_ROOT; };
 		A447B67116670028009EA762 /* libplayer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libplayer.a; path = CoronaEnterprise/Corona/ios/lib/libplayer.a; sourceTree = SOURCE_ROOT; };
-		A447B824166856F3009EA762 /* main.lua */ = {isa = PBXFileReference; lastKnownFileType = text; name = main.lua; path = ../Corona/main.lua; sourceTree = SOURCE_ROOT; xcLanguageSpecificationIdentifier = xcode.lang.lua; };
-		A484111915114F700074BD57 /* pasteboard.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = pasteboard.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A447B824166856F3009EA762 /* main.lua */ = {isa = PBXFileReference; lastKnownFileType = text; name = main.lua; path = ../Corona/main.lua; sourceTree = SOURCE_ROOT; };
+		A484111915114F700074BD57 /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A484111D15114F700074BD57 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		A484111F15114F700074BD57 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		A484112115114F700074BD57 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -150,7 +150,7 @@
 				A4E2537F166AE3DC00DCDC2C /* Twitter.framework in Frameworks */,
 				A484111E15114F700074BD57 /* UIKit.framework in Frameworks */,
 				A447B67C16675195009EA762 /* libplayer.a in Frameworks */,
-				A4E253E5166DE7E000DCDC2C /* libclipboard.a in Frameworks */,
+				A4E253E5166DE7E000DCDC2C /* libplugin_library.a in Frameworks */,
 				A4A8C33C1683FA8200277A88 /* FacebookSDK.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -200,7 +200,7 @@
 		A484111A15114F700074BD57 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A484111915114F700074BD57 /* pasteboard.app */,
+				A484111915114F700074BD57 /* App.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -280,7 +280,7 @@
 		A4E253DB166DE7C800DCDC2C /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A4E253E2166DE7C800DCDC2C /* libclipboard.a */,
+				A4E253E2166DE7C800DCDC2C /* libplugin_library.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -288,9 +288,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		A484111815114F700074BD57 /* pasteboard */ = {
+		A484111815114F700074BD57 /* App */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A484114215114F700074BD57 /* Build configuration list for PBXNativeTarget "pasteboard" */;
+			buildConfigurationList = A484114215114F700074BD57 /* Build configuration list for PBXNativeTarget "App" */;
 			buildPhases = (
 				A484111715114F700074BD57 /* Resources */,
 				A484111515114F700074BD57 /* Sources */,
@@ -303,11 +303,11 @@
 			buildRules = (
 			);
 			dependencies = (
-				30C76F15178DA1ED00C1DF48 /* PBXTargetDependency */,
+				A4E253E4166DE7D800DCDC2C /* PBXTargetDependency */,
 			);
-			name = pasteboard;
+			name = App;
 			productName = CoronaSampleApp;
-			productReference = A484111915114F700074BD57 /* pasteboard.app */;
+			productReference = A484111915114F700074BD57 /* App.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -318,7 +318,7 @@
 			attributes = {
 				LastUpgradeCheck = 0420;
 			};
-			buildConfigurationList = A484111315114F700074BD57 /* Build configuration list for PBXProject "ClipBoard" */;
+			buildConfigurationList = A484111315114F700074BD57 /* Build configuration list for PBXProject "App" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -336,16 +336,16 @@
 			);
 			projectRoot = "";
 			targets = (
-				A484111815114F700074BD57 /* pasteboard */,
+				A484111815114F700074BD57 /* App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		A4E253E2166DE7C800DCDC2C /* libclipboard.a */ = {
+		A4E253E2166DE7C800DCDC2C /* libplugin_library.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libclipboard.a;
+			path = libplugin_library.a;
 			remoteRef = A4E253E1166DE7C800DCDC2C /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -441,10 +441,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		30C76F15178DA1ED00C1DF48 /* PBXTargetDependency */ = {
+		A4E253E4166DE7D800DCDC2C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = iTunesLibrary;
-			targetProxy = 30C76F14178DA1ED00C1DF48 /* PBXContainerItemProxy */;
+			name = plugin_library;
+			targetProxy = A4E253E3166DE7D800DCDC2C /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -564,7 +564,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		A484111315114F700074BD57 /* Build configuration list for PBXProject "ClipBoard" */ = {
+		A484111315114F700074BD57 /* Build configuration list for PBXProject "App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A484114015114F700074BD57 /* Debug */,
@@ -573,7 +573,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A484114215114F700074BD57 /* Build configuration list for PBXNativeTarget "pasteboard" */ = {
+		A484114215114F700074BD57 /* Build configuration list for PBXNativeTarget "App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A484114315114F700074BD57 /* Debug */,

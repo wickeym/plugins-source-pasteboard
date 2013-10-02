@@ -1,8 +1,11 @@
+local widget = require( "widget" )
+
+-- Function to copy a file
 local function copyFile( options )
 	local _sourceFile = options.sourceFile or error( "idUtils:copyFile - options.sourceFile is either nil or omitted" )
 	local _sourcePath = options.sourcePath or error( "idUtils:copyFile - options.sourcePath is either nil or omitted" )
 	local _destinationFile = options.destinationFile or error( "idUtils:copyFile - options.destinationFile is either nil or omitted" )
-	local _destinationPath = options.destinationPath	or error( "idUtils:copyFile - options.destinationPath is either nil or omitted" )
+	local _destinationPath = options.destinationPath or error( "idUtils:copyFile - options.destinationPath is either nil or omitted" )
     
 	-- Assume copy went ok
 	local results = true
@@ -46,15 +49,27 @@ end
 
 
 -- Require the plugin library
-local pasteboard = require "plugin.pasteboard"
+local pasteboard = require( "plugin.pasteboard" )
 
--- Constants (Set the constant you would like to test to true)
-local TEST_STRING_COPY = false
-local TEST_URL_COPY = false
-local TEST_IMAGE_COPY = false
+-- Create a background
+local background = display.newImageRect( "back-whiteorange.png", display.contentWidth, display.contentHeight );
+background.x = display.contentCenterX
+background.y = display.contentCenterY
+background:addEventListener( "touch", function() native.setKeyboardFocus( nil ) end )
+
+-- Create a textfield
+local textField = native.newTextField( 60, 40, 200, 40 )
+
+-- Container for our image
+local imgContainer = display.newRect( 100, 100, 100, 100 )
+imgContainer:setFillColor( 0 )
+imgContainer.img = nil
+
+-- Set the data types this application allows (from a paste)
+pasteboard.setAllowedTypes( { "url", "string", "image" } )
 
 -- Query the type of data on the pasteboard
-local pType = pasteboard.queryType()
+local pType = pasteboard.getType()
 
 -- Print the data type
 print( "Type of data on pasteboard is:", pType )
@@ -67,27 +82,38 @@ local function onPaste( event )
 		end
 	end
 	
+	print( "Pasting a/an ", pasteboard.getType() )
+	
 	-- Paste an image
-	if event.fileName then
-		print( "IMAGE" )
-		local img = display.newImageRect( event.filename, event.baseDir, 300, 300 )
-		img.x = display.contentCenterX
-		img.y = display.contentCenterY
+	if event.filename then
+		--print( "IMAGE" )
+		--display.remove( imgContainer.img )
+		
+		--print( "filename is:", event.filename )
+		--print( "baseDir is:", event.baseDir )
+
+		imgContainer.img = display.newImageRect( event.filename, event.baseDir, 80, 80 )
+		imgContainer.img.alpha = 0
+		imgContainer.img.x = imgContainer.x
+		imgContainer.img.y = imgContainer.y
+		transition.to( imgContainer.img, { alpha = 1 } )
 	end
 	
 	-- Paste a string
 	if event.string then
-		print( "STRING" )
-		local text = display.newText( event.string, 0, 0, native.systemFontBold, 16 )
-		text.x = display.contentCenterX
-		text.y = display.contentCenterY
+		--print( "STRING" )
+		--local text = display.newText( event.string, 0, 0, native.systemFontBold, 16 )
+		--text.x = display.contentCenterX
+		--text.y = display.contentCenterY
+		textField.text = event.string
 	end
 	
 	-- Paste a url
 	if event.url then
-		print( "URL" )
-		local webView = native.newWebView( 0, 0, display.contentWidth, display.contentHeight )
-		webView:request( event.url )
+		--print( "URL" )
+		textField.text = event.url
+		--local webView = native.newWebView( 0, 0, display.contentWidth, display.contentHeight )
+		--webView:request( event.url )
 	end
 end
 
@@ -122,22 +148,61 @@ copyFile(
 
 
 -- Test image copy to pasteboard
-if TEST_IMAGE_COPY then
-	--pasteboard.copy( "image", "Icon.png", system.ResourceDirectory )
+local function copyImage()	
+	pasteboard.copy( "image", "Icon.png", system.ResourceDirectory )
 	--pasteboard.copy( "image", "docsTest.png", system.DocumentsDirectory )
 	--pasteboard.copy( "image", "tempTest.png", system.TemporaryDirectory )
 	--pasteboard.copy( "image", "tempTest.png", system.CachesDirectory )
 end
 
 -- Test copying a string to the pasteboard
-if TEST_STRING_COPY then
+local function copyString()
 	pasteboard.copy( "string", "Hello Corona World!" )
 end
 
 -- Test copying a url to the pasteboard
-if TEST_URL_COPY then
+local function copyUrl()
 	pasteboard.copy( "url", "http://www.coronalabs.com" )
 end
 
 -- Paste whatever is on the clipboard
-pasteboard.paste( onPaste )
+local function paste()
+	pasteboard.paste( onPaste )
+end
+
+
+-- Button - Copy Image
+local copyImageButton = widget.newButton
+{
+	left = 60,
+	top = 230,
+	label = "Copy Image",
+	onRelease = copyImage,
+}
+
+-- Button - Copy String
+local copyStringButton = widget.newButton
+{
+	left = 60,
+	top = copyImageButton.y + copyImageButton.contentHeight - 10,
+	label = "Copy String",
+	onRelease = copyString,
+}
+
+-- Button - Copy Url
+local copyUrlButton = widget.newButton
+{
+	left = 60,
+	top = copyStringButton.y + copyStringButton.contentHeight - 10,
+	label = "Copy Url",
+	onRelease = copyUrl,
+}
+
+-- Button - Paste
+local pasteButton = widget.newButton
+{
+	left = 60,
+	top = copyUrlButton.y + copyUrlButton.contentHeight - 10,
+	label = "Paste",
+	onRelease = paste,
+}

@@ -1,10 +1,11 @@
-// ----------------------------------------------------------------------------
-// pasteboardLibrary.mm
 //
-// Copyright (c) 2013 Corona Labs Inc. All rights reserved.
-// ----------------------------------------------------------------------------
+//  PasteboardPlugin.mm
+//  Pasteboard Plugin
+//
+//  Copyright (c) 2013 CoronaLabs. All rights reserved.
+//
 
-#import "pasteboardLibrary.h"
+#import "pasteboardPlugin.h"
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
@@ -51,8 +52,9 @@ class pasteboardLibrary
 	public:
 		static int copy( lua_State *L );
 		static int paste( lua_State *L );
-		static int queryType( lua_State *L );
+		static int getType( lua_State *L );
 		static int setAllowedTypes( lua_State *L );
+		static int clear( lua_State *L );
 
 	private:
 		UIViewController *fAppViewController;
@@ -86,8 +88,9 @@ pasteboardLibrary::Open( lua_State *L )
 		{
 			{ "copy", copy },
 			{ "paste", paste },
-			{ "queryType", queryType },
+			{ "getType", getType },
 			{ "setAllowedTypes", setAllowedTypes },
+			{ "clear", clear },
 			{ NULL, NULL }
 		};
 
@@ -143,6 +146,10 @@ pasteboardLibrary::Initialize( void *platformContext )
 
 // ----------------------------------------------------------------------------
 
+// Types of data allowed to be pasted
+static bool isImagePastingAllowed = true;
+static bool isStringPastingAllowed = true;
+static bool isUrlPastingAllowed = true;
 
 // Function to create the pasteboard
 static void
@@ -163,6 +170,54 @@ pasteboardLibrary::setAllowedTypes( lua_State *L )
 	// Create the pasteboard if it doesn't exist
 	createPasteboardIfNil();
 	
+	// If the user has passed in a table
+	if ( lua_istable( L, 1 ) )
+	{
+		// Disable all pasting by default
+		isImagePastingAllowed = false;
+		isStringPastingAllowed = false;
+		isUrlPastingAllowed = false;
+	
+		// Get the number of defined filters from lua
+		int numOfTypes = luaL_getn( L, 1 );
+
+		// Loop through the filter array
+		for ( int i = 1; i <= numOfTypes; ++i )
+		{
+			// Get the tables first value
+			lua_rawgeti( L, -1, i );
+	
+			// The current type
+			const char *currentType = lua_tostring( L, -1 );
+			
+			// Image
+			if ( 0 == strcmp( "image", currentType ) )
+			{
+				isImagePastingAllowed = true;
+			}
+			// String
+			if ( 0 == strcmp( "string", currentType ) )
+			{
+				isStringPastingAllowed = true;
+			}
+			// Url
+			if ( 0 == strcmp( "url", currentType ) )
+			{
+				isUrlPastingAllowed = true;
+			}
+
+			// Pop the current filter
+			lua_pop( L, 1 );
+		}
+	}
+	// If the user passed nil, disable pasting
+	if ( lua_isnil( L, 1 ) )
+	{
+		isImagePastingAllowed = false;
+		isStringPastingAllowed = false;
+		isUrlPastingAllowed = false;
+	}
+	
 	return 0;
 }
 
@@ -174,13 +229,17 @@ pasteboardLibrary::copy( lua_State *L )
 	// Create the pasteboard if it doesn't exist
 	createPasteboardIfNil();
 	
+	// Enforce string type for #1 & #2 arguments
+	luaL_checktype( L, 1, LUA_TSTRING );
+	luaL_checktype( L, 2, LUA_TSTRING );
+	
+	// The copy type string
 	const char *copyType = lua_tostring( L, 1 );
 	
 	// Copy String
 	if ( 0 == strcmp( "string", copyType ) )
 	{
-		printf( "Copying a string\n" );
-		
+		// Get the string
 		const char *string = lua_tostring( L, 2 );
 		NSString *pasteboardString = [NSString stringWithUTF8String:string];
 		[appPasteBoard setString:pasteboardString];
@@ -188,19 +247,15 @@ pasteboardLibrary::copy( lua_State *L )
 	// Copy Url
 	if ( 0 == strcmp( "url", copyType ) )
 	{
-		printf( "Copying a url\n" );
-		
+		// Get the url
 		const char *url = lua_tostring( L, 2 );
 		NSString *pasteboardUrlString = [NSString stringWithUTF8String:url];
 		NSURL *pasteBoardUrl = [NSURL URLWithString:[pasteboardUrlString stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
 		[appPasteBoard setURL:pasteBoardUrl];
 	}
-	
 	// Copy Image
 	if ( 0 == strcmp( "image", copyType ) )
 	{
-		printf( "Copying a image\n" );
-		
 		// The image filename
 		const char *fileName = lua_tostring( L, 2 );
 
@@ -208,12 +263,14 @@ pasteboardLibrary::copy( lua_State *L )
 		NSString *filePath = nil;
 		NSString *fileFromCString = [NSString stringWithUTF8String:fileName];
 		
-		
 		// The specified system directory path
 		void *userPathConstant = lua_touserdata( L, 3 );
 		
 		// Get the paths
 		lua_getglobal( L, "system" );
+		lua_getfield( L, -1, "ResourceDirectory" );
+		void *resourceDirectoryConstant = lua_touserdata( L, -1 );
+		lua_pop( L, 1 );
 		lua_getfield( L, -1, "DocumentsDirectory" );
 		void *documentsDirectoryConstant = lua_touserdata( L, -1 );
 		lua_pop( L, 1 );
@@ -222,12 +279,20 @@ pasteboardLibrary::copy( lua_State *L )
 		lua_pop( L, 1 );
 		lua_getfield( L, -1, "CachesDirectory" );
 		void *cachesDirectoryConstant = lua_touserdata( L, -1 );
-		lua_pop( L, 2 );
+		lua_pop( L, 2 ); // Pop the caches key and the system key from the stack
 		
 		// Check which system constant the user specified
-		if ( userPathConstant == documentsDirectoryConstant )
+		if ( userPathConstant == resourceDirectoryConstant)
 		{
-			printf( "Directory is Documents\n" );
+			// Get the fileName & extension
+			NSString* fName = [[fileFromCString lastPathComponent] stringByDeletingPathExtension];
+			NSString* ext = [fileFromCString pathExtension];
+			
+			// Set the filePath
+			filePath = [[NSBundle mainBundle] pathForResource:fName ofType:ext];
+		}
+		else if ( userPathConstant == documentsDirectoryConstant )
+		{
 			// Get the documents path
 			NSString *documentsPath = [NSSearchPathForDirectoriesInDomains( NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
 			
@@ -236,13 +301,11 @@ pasteboardLibrary::copy( lua_State *L )
 		}
 		else if ( userPathConstant == temporaryDirectoryConstant )
 		{
-			printf( "Directory is Temporary\n" );
 			// Set the filePath
 			filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileFromCString];
 		}
 		else if ( userPathConstant == cachesDirectoryConstant )
 		{
-			printf( "Directory is Caches\n" );
 			// Get the caches path
 			NSString *cachespath = [NSSearchPathForDirectoriesInDomains( NSCachesDirectory, NSUserDomainMask, YES) lastObject];
 			// Set the filePath
@@ -250,21 +313,16 @@ pasteboardLibrary::copy( lua_State *L )
 		}
 		else
 		{
-			printf( "Directory is Resource\n" );
-			// Get the fileName & extension
-			NSString* fName = [[fileFromCString lastPathComponent] stringByDeletingPathExtension];
-			NSString* ext = [fileFromCString pathExtension];
-			
-			// Set the filePath
-			filePath = [[NSBundle mainBundle] pathForResource:fName ofType:ext];
+			luaL_error( L, "baseDirectory expected, got nil" );
 		}
 				
 		// Attempt to create the image
 		UIImage* image = [UIImage imageWithContentsOfFile:filePath];
 		
+		// If we can't create the image then throw an error
 		if ( NULL == image )
 		{
-			luaL_error( L, "Couldn't copy image with filename: %s to the clipboard as it doesn't exist", fileName );
+			luaL_error( L, "Couldn't copy image with filename: %s to the clipboard/pasteboard as it doesn't exist", fileName );
 		}
 		else
 		{
@@ -287,24 +345,33 @@ pasteboardLibrary::paste( lua_State *L )
 	
 	// Listener
 	Lua::Ref listenerRef = NULL;
+	
+	// Event Name
+	const char *eventName = "pasteboard";
+	// Event Type
+	const char *eventType = "paste";
 		
 	// Create native reference to listener
-	if ( Lua::IsListener( L, -1, "pasteboard" ) )
+	if ( Lua::IsListener( L, -1, eventName ) )
 	{
 		listenerRef = Lua::NewRef( L, -1 );
 	}
+	else
+	{
+		luaL_error( L, "Listener expected, got nil" );
+	}
 	
 	// If Pasting a String
-	if ( appPasteBoard.string )
+	if ( appPasteBoard.string && ! appPasteBoard.URL )
 	{
 		// Dispatch the event
 		if ( NULL != listenerRef )
 		{
 			// Event name
-			Corona::Lua::NewEvent( L, "pasteboard" );
+			Corona::Lua::NewEvent( L, eventName );
 			
 			// Event type
-			lua_pushstring( L, "paste" );
+			lua_pushstring( L, eventType );
 			lua_setfield( L, -2, CoronaEventTypeKey() );
 			
 			// String
@@ -323,10 +390,10 @@ pasteboardLibrary::paste( lua_State *L )
 		if ( NULL != listenerRef )
 		{
 			// Event name
-			Corona::Lua::NewEvent( L, "pasteboard" );
+			Corona::Lua::NewEvent( L, eventName );
 			
 			// Event type
-			lua_pushstring( L, "paste" );
+			lua_pushstring( L, eventType );
 			lua_setfield( L, -2, CoronaEventTypeKey() );
 			
 			// String
@@ -342,18 +409,39 @@ pasteboardLibrary::paste( lua_State *L )
 	// If Pasting an Image
 	if ( appPasteBoard.image )
 	{
-		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES); 
+		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 		NSString *documentsDirectoryPath = [paths objectAtIndex:0];
-		NSString *oldFile = [documentsDirectoryPath stringByAppendingPathComponent:@"clipboard.png"];
-		[[NSFileManager defaultManager] removeItemAtPath:oldFile error:NULL];
+		NSString *pastedFileName = @"_pasteboard_paste.png";
+		NSString* pngFilePath = [documentsDirectoryPath stringByAppendingPathComponent:pastedFileName];
 		
-		//NSString* pngFile = [documentsPath stringByAppendingPathComponent:@"Documents/clipboard.png"];
-		//BOOL fileExists = [[NSFileManager defaultManager] fileExistsAtPath:pngFile];
+		// Does the "_pasteboard_paste.png" file exist?
+		BOOL unprefixedFileExists = [[NSFileManager defaultManager] fileExistsAtPath:pngFilePath];
 		
-		// QUESTION: Do we want to remove and replace the old clipboard image or append the filename with numeric indexes so a potentially unlimited (storage limited) number of image pastes can be achieved?
-	
-		// Set the output path
-		NSString *pngPath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/clipboard.png"];
+		// If the "_pasteboard_paste.png" file already exists, we need to append it's filename with a numeric index
+		if ( unprefixedFileExists )
+		{
+			// Loop through until we reach a paste index that hasn't been used yet.
+			for ( int i = 1; i < INFINITY; i++ )
+			{
+				// The name of the numeric appended filename
+				NSString *currentFileName = [NSString stringWithFormat:@"%s%d%s", [pastedFileName UTF8String], i, ".png"];
+				// The path to the file
+				NSString *actualFilePath = [documentsDirectoryPath stringByAppendingPathComponent:currentFileName];
+				// Does the numeric appended file exist
+				BOOL numericAppendedFileExists = [[NSFileManager defaultManager] fileExistsAtPath:actualFilePath];
+				
+				// If the numeric appended file doesn't exist, then we can use that numeric index to append to our filename
+				if ( ! numericAppendedFileExists )
+				{
+					// Set the filename
+					pastedFileName = currentFileName;
+					break;
+				}
+			}
+		}
+			
+		// Set the output file write path
+		NSString *pngPath = [NSHomeDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"Documents/%@", pastedFileName]];
 		
 		// Write the image to a png file
 		[UIImagePNGRepresentation(appPasteBoard.image) writeToFile:pngPath atomically:YES];
@@ -362,14 +450,14 @@ pasteboardLibrary::paste( lua_State *L )
 		if ( NULL != listenerRef )
 		{
 			// Event name
-			Corona::Lua::NewEvent( L, "pasteboard" );
+			Corona::Lua::NewEvent( L, eventName );
 			
 			// Event type
-			lua_pushstring( L, "paste" );
+			lua_pushstring( L, eventType );
 			lua_setfield( L, -2, CoronaEventTypeKey() );
 			
 			// Filename
-			lua_pushstring( L, "clipboard.png" );
+			lua_pushstring( L, [pastedFileName UTF8String] );
 			lua_setfield( L, -2, "filename" );
 			
 			// Base directory
@@ -390,7 +478,7 @@ pasteboardLibrary::paste( lua_State *L )
 		if ( NULL != listenerRef )
 		{
 			// Event name
-			Corona::Lua::NewEvent( L, "pasteboard" );
+			Corona::Lua::NewEvent( L, eventName );
 			
 			// Event type
 			lua_pushnil( L );
@@ -405,9 +493,9 @@ pasteboardLibrary::paste( lua_State *L )
 }
 
 
-// Query the data type of the topmost item on the pasteboard
+// Get the data type of the topmost item on the pasteboard
 int
-pasteboardLibrary::queryType( lua_State *L )
+pasteboardLibrary::getType( lua_State *L )
 {
 	// Create the pasteboard if it doesn't exist
 	createPasteboardIfNil();
@@ -436,9 +524,20 @@ pasteboardLibrary::queryType( lua_State *L )
 		return 1;
 	}
 	
-	// None
-	lua_pushstring( L, "none" );
+	// No Data
+	lua_pushnil( L );
 	return 1;
+}
+
+
+// Clear the pasteboard
+int
+pasteboardLibrary::clear( lua_State *L )
+{
+	UIPasteboard *pb = [UIPasteboard generalPasteboard];
+    [pb setValue:@"" forPasteboardType:UIPasteboardNameGeneral];
+	
+	return 0;
 }
 
 // ----------------------------------------------------------------------------
@@ -451,10 +550,6 @@ pasteboardLibrary::queryType( lua_State *L )
 
 // ----------------------------------------------------------------------------
 
-// IMPORTANT > the name here (and in the .h file) MUST match the name of the plugin.
-// This plugin is named "plugin.iTunes" via lua so here it is plugin_iTunes
-// If you wanted to rename it to just "iTunes" you would change it to luaopen_iTunes
-// If you wanted to rename it to "plugin.myPlugin" you would change it to luaopen_plugin_myPlugin
 CORONA_EXPORT
 int luaopen_plugin_pasteboard( lua_State *L )
 {

@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A4E253C9166D716900DCDC2C /* pasteboardLibrary.mm in Sources */ = {isa = PBXBuildFile; fileRef = A447B617165D734C009EA762 /* pasteboardLibrary.mm */; };
+		30DF1EF017FC4E5000E3267A /* pasteboardPlugin.mm in Sources */ = {isa = PBXBuildFile; fileRef = 30DF1EEF17FC4E5000E3267A /* pasteboardPlugin.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -23,10 +23,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		A447B616165D734C009EA762 /* pasteboardLibrary.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pasteboardLibrary.h; path = Plugin/pasteboardLibrary.h; sourceTree = "<group>"; };
-		A447B617165D734C009EA762 /* pasteboardLibrary.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pasteboardLibrary.mm; path = Plugin/pasteboardLibrary.mm; sourceTree = "<group>"; };
-		A4E253B6166D6FB300DCDC2C /* libpasteboard
-.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libpasteboard\n.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		30DF1EEE17FC4E5000E3267A /* pasteboardPlugin.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = pasteboardPlugin.h; path = Plugin/pasteboardPlugin.h; sourceTree = "<group>"; };
+		30DF1EEF17FC4E5000E3267A /* pasteboardPlugin.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = pasteboardPlugin.mm; path = Plugin/pasteboardPlugin.mm; sourceTree = "<group>"; };
+		A4E253B6166D6FB300DCDC2C /* libpasteboard.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libpasteboard.a; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,19 +39,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		A447B609165D72A6009EA762 /* Plugin */ = {
+		A447B609165D72A6009EA762 /* Source */ = {
 			isa = PBXGroup;
 			children = (
-				A447B616165D734C009EA762 /* pasteboardLibrary.h */,
-				A447B617165D734C009EA762 /* pasteboardLibrary.mm */,
+				30DF1EEE17FC4E5000E3267A /* pasteboardPlugin.h */,
+				30DF1EEF17FC4E5000E3267A /* pasteboardPlugin.mm */,
 			);
-			name = Plugin;
+			name = Source;
 			sourceTree = "<group>";
 		};
 		A484110E15114F700074BD57 = {
 			isa = PBXGroup;
 			children = (
-				A447B609165D72A6009EA762 /* Plugin */,
+				A447B609165D72A6009EA762 /* Source */,
 				A484111A15114F700074BD57 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -60,8 +59,7 @@
 		A484111A15114F700074BD57 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				A4E253B6166D6FB300DCDC2C /* libpasteboard
-.a */,
+				A4E253B6166D6FB300DCDC2C /* libpasteboard.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -83,8 +81,7 @@
 			);
 			name = pasteboard;
 			productName = plugin_library;
-			productReference = A4E253B6166D6FB300DCDC2C /* libpasteboard
-.a */;
+			productReference = A4E253B6166D6FB300DCDC2C /* libpasteboard.a */;
 			productType = "com.apple.product-type.library.static";
 		};
 /* End PBXNativeTarget section */
@@ -117,7 +114,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A4E253C9166D716900DCDC2C /* pasteboardLibrary.mm in Sources */,
+				30DF1EF017FC4E5000E3267A /* pasteboardPlugin.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -180,7 +177,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)\n";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -194,7 +191,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				OTHER_LDFLAGS = "-ObjC";
-				PRODUCT_NAME = "$(TARGET_NAME)\n";
+				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
