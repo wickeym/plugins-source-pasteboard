@@ -362,7 +362,7 @@ pasteboardLibrary::paste( lua_State *L )
 	}
 	
 	// If Pasting a String
-	if ( appPasteBoard.string && isStringPastingAllowed && ! appPasteBoard.URL )
+	if ( ( ( appPasteBoard.string ) && ( isStringPastingAllowed ) ) && ! appPasteBoard.URL )
 	{
 		// Dispatch the event
 		if ( NULL != listenerRef )
@@ -384,7 +384,7 @@ pasteboardLibrary::paste( lua_State *L )
 	}
 	
 	// If Pasting a Url
-	if ( appPasteBoard.URL && isUrlPastingAllowed )
+	if ( ( appPasteBoard.URL ) && ( isUrlPastingAllowed ) )
 	{
 		// Dispatch the event
 		if ( NULL != listenerRef )
@@ -407,7 +407,7 @@ pasteboardLibrary::paste( lua_State *L )
 	}
 	
 	// If Pasting an Image
-	if ( appPasteBoard.image && isImagePastingAllowed )
+	if ( ( appPasteBoard.image ) && ( isImagePastingAllowed ) )
 	{
 		NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
 		NSString *documentsDirectoryPath = [paths objectAtIndex:0];
