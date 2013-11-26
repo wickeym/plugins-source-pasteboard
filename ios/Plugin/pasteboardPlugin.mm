@@ -7,18 +7,13 @@
 
 #import "pasteboardPlugin.h"
 
-#import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
-#import <MediaPlayer/MediaPlayer.h>
-#import <Accounts/Accounts.h>
-#import <AVFoundation/AVFoundation.h>
 
 #import "CoronaRuntime.h"
 #include "CoronaAssert.h"
 #include "CoronaEvent.h"
 #include "CoronaLua.h"
 #include "CoronaLibrary.h"
-
 
 // ----------------------------------------------------------------------------
 
@@ -146,6 +141,49 @@ pasteboardLibrary::Initialize( void *platformContext )
 
 // ----------------------------------------------------------------------------
 
+// Function to return a string for the chosen base directory
+static const char *
+baseDirectoryToString( lua_State *L, void *baseDir )
+{
+	const char *baseDirStr = NULL;
+
+	// Get the paths
+	lua_getglobal( L, "system" );
+	lua_getfield( L, -1, "ResourceDirectory" );
+	void *resourceDirectoryConstant = lua_touserdata( L, -1 );
+	lua_pop( L, 1 );
+	lua_getfield( L, -1, "DocumentsDirectory" );
+	void *documentsDirectoryConstant = lua_touserdata( L, -1 );
+	lua_pop( L, 1 );
+	lua_getfield( L, -1, "TemporaryDirectory" );
+	void *temporaryDirectoryConstant = lua_touserdata( L, -1 );
+	lua_pop( L, 1 );
+	lua_getfield( L, -1, "CachesDirectory" );
+	void *cachesDirectoryConstant = lua_touserdata( L, -1 );
+	lua_pop( L, 2 ); // Pop the caches key and the system key from the stack
+	
+	// Check which system constant the user specified
+	if ( baseDir == resourceDirectoryConstant)
+	{
+		baseDirStr = "ResourceDirectory";
+	}
+	else if ( baseDir == documentsDirectoryConstant )
+	{
+		baseDirStr = "DocumentsDirectory";
+	}
+	else if ( baseDir == temporaryDirectoryConstant )
+	{
+		baseDirStr = "TemporaryDirectory";
+	}
+	else if ( baseDir == cachesDirectoryConstant )
+	{
+		baseDirStr = "CachesDirectory";
+	}
+	
+	return baseDirStr;
+}
+
+
 // Types of data allowed to be pasted
 static bool isImagePastingAllowed = true;
 static bool isStringPastingAllowed = true;
@@ -173,7 +211,7 @@ pasteboardLibrary::setAllowedTypes( lua_State *L )
 	// If the user has passed in a table
 	if ( lua_istable( L, 1 ) )
 	{
-		// Disable all pasting by default
+		// Disable all pasting until we get the allowed types
 		isImagePastingAllowed = false;
 		isStringPastingAllowed = false;
 		isUrlPastingAllowed = false;
@@ -182,10 +220,13 @@ pasteboardLibrary::setAllowedTypes( lua_State *L )
 		int numOfTypes = luaL_getn( L, 1 );
 
 		// Loop through the filter array
-		for ( int i = 1; i <= numOfTypes; ++i )
+		for ( int i = 1; i <= numOfTypes; i++ )
 		{
 			// Get the tables first value
 			lua_rawgeti( L, -1, i );
+			
+			// Enforce string type
+			luaL_checktype( L, -1, LUA_TSTRING );
 	
 			// The current type
 			const char *currentType = lua_tostring( L, -1 );
@@ -259,39 +300,23 @@ pasteboardLibrary::copy( lua_State *L )
 		// The image filename
 		const char *fileName = lua_tostring( L, 2 );
 
-		// File path and 
+		// File path and filename
 		NSString *filePath = nil;
 		NSString *fileFromCString = [NSString stringWithUTF8String:fileName];
 		
-		// The specified system directory path
+		// The specified system directory path constant
 		void *userPathConstant = lua_touserdata( L, 3 );
 		
-		// Get the paths
-		lua_getglobal( L, "system" );
-		lua_getfield( L, -1, "ResourceDirectory" );
-		void *resourceDirectoryConstant = lua_touserdata( L, -1 );
-		lua_pop( L, 1 );
-		lua_getfield( L, -1, "DocumentsDirectory" );
-		void *documentsDirectoryConstant = lua_touserdata( L, -1 );
-		lua_pop( L, 1 );
-		lua_getfield( L, -1, "TemporaryDirectory" );
-		void *temporaryDirectoryConstant = lua_touserdata( L, -1 );
-		lua_pop( L, 1 );
-		lua_getfield( L, -1, "CachesDirectory" );
-		void *cachesDirectoryConstant = lua_touserdata( L, -1 );
-		lua_pop( L, 2 ); // Pop the caches key and the system key from the stack
+		// Get the baseDir as a string
+		const char *baseDir = baseDirectoryToString( L, userPathConstant );
 		
 		// Check which system constant the user specified
-		if ( userPathConstant == resourceDirectoryConstant)
+		if ( 0 == strcmp( "ResourceDirectory", baseDir ) )
 		{
-			// Get the fileName & extension
-			NSString* fName = [[fileFromCString lastPathComponent] stringByDeletingPathExtension];
-			NSString* ext = [fileFromCString pathExtension];
-			
 			// Set the filePath
-			filePath = [[NSBundle mainBundle] pathForResource:fName ofType:ext];
+			filePath = [[NSBundle mainBundle] pathForResource:fileFromCString ofType:nil];
 		}
-		else if ( userPathConstant == documentsDirectoryConstant )
+		else if ( 0 == strcmp( "DocumentsDirectory", baseDir ) )
 		{
 			// Get the documents path
 			NSString *documentsPath = [NSSearchPathForDirectoriesInDomains( NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
@@ -299,17 +324,17 @@ pasteboardLibrary::copy( lua_State *L )
 			// Set the filePath
 			filePath = [documentsPath stringByAppendingPathComponent:fileFromCString];
 		}
-		else if ( userPathConstant == temporaryDirectoryConstant )
+		else if ( 0 == strcmp( "TemporaryDirectory", baseDir ) )
 		{
 			// Set the filePath
 			filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileFromCString];
 		}
-		else if ( userPathConstant == cachesDirectoryConstant )
+		else if ( 0 == strcmp( "CachesDirectory", baseDir ) )
 		{
 			// Get the caches path
 			NSString *cachespath = [NSSearchPathForDirectoriesInDomains( NSCachesDirectory, NSUserDomainMask, YES) lastObject];
 			// Set the filePath
-			filePath = [cachespath stringByAppendingPathComponent:fileFromCString];
+			filePath = [cachespath stringByAppendingString:[NSString stringWithFormat:@"/caches/%@", fileFromCString]];
 		}
 		else
 		{
@@ -317,18 +342,18 @@ pasteboardLibrary::copy( lua_State *L )
 		}
 				
 		// Attempt to create the image
-		UIImage* image = [UIImage imageWithContentsOfFile:filePath];
+		UIImage *image = [UIImage imageWithContentsOfFile:filePath];
 		
 		// If we can't create the image then throw an error
-		if ( NULL == image )
-		{
-			luaL_error( L, "Couldn't copy image with filename: %s to the clipboard/pasteboard as it doesn't exist", fileName );
-		}
-		else
+		if ( image )
 		{
 			// Copy the image to the pasteboard
 			[appPasteBoard setImage:image];
 			image = nil;
+		}
+		else
+		{
+			luaL_error( L, "Couldn't copy image with filename: %s to the clipboard/pasteboard as it doesn't exist", fileName );
 		}
 	}
 	
@@ -365,7 +390,7 @@ pasteboardLibrary::paste( lua_State *L )
 	if ( ( ( appPasteBoard.string ) && ( isStringPastingAllowed ) ) && ! appPasteBoard.URL )
 	{
 		// Dispatch the event
-		if ( NULL != listenerRef )
+		if ( listenerRef )
 		{
 			// Event name
 			Corona::Lua::NewEvent( L, eventName );
@@ -387,7 +412,7 @@ pasteboardLibrary::paste( lua_State *L )
 	if ( ( appPasteBoard.URL ) && ( isUrlPastingAllowed ) )
 	{
 		// Dispatch the event
-		if ( NULL != listenerRef )
+		if ( listenerRef )
 		{
 			// Event name
 			Corona::Lua::NewEvent( L, eventName );
@@ -447,7 +472,7 @@ pasteboardLibrary::paste( lua_State *L )
 		[UIImagePNGRepresentation(appPasteBoard.image) writeToFile:pngPath atomically:YES];
 		
 		// Dispatch the event
-		if ( NULL != listenerRef )
+		if ( listenerRef )
 		{
 			// Event name
 			Corona::Lua::NewEvent( L, eventName );
@@ -475,7 +500,7 @@ pasteboardLibrary::paste( lua_State *L )
 	if ( ! appPasteBoard.string && ! appPasteBoard.URL && ! appPasteBoard.image )
 	{
 		// Dispatch the event
-		if ( NULL != listenerRef )
+		if ( listenerRef )
 		{
 			// Event name
 			Corona::Lua::NewEvent( L, eventName );

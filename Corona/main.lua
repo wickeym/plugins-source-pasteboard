@@ -1,52 +1,15 @@
+-- 
+-- Abstract: Pasteboard sample app
+--  
+-- Version: 1.0
+-- 
+-- Sample code is MIT licensed, see http://www.coronalabs.com/links/code/license
+-- Copyright (C) 2013 Corona Labs Inc. All Rights Reserved.
+--
+-- Demonstrates how to use Corona to interact with the device pasteboard.
+
+-- Require the Widget library
 local widget = require( "widget" )
-
--- Function to copy a file
-local function copyFile( options )
-	local _sourceFile = options.sourceFile or error( "idUtils:copyFile - options.sourceFile is either nil or omitted" )
-	local _sourcePath = options.sourcePath or error( "idUtils:copyFile - options.sourcePath is either nil or omitted" )
-	local _destinationFile = options.destinationFile or error( "idUtils:copyFile - options.destinationFile is either nil or omitted" )
-	local _destinationPath = options.destinationPath or error( "idUtils:copyFile - options.destinationPath is either nil or omitted" )
-    
-	-- Assume copy went ok
-	local results = true
-
-    -- Copy the source file to the destination file
-    local readPath = system.pathForFile( _sourceFile, _sourcePath )
-    local writePath = system.pathForFile( _destinationFile, _destinationPath )
- 
-    local readHandle = io.open( readPath, "rb" ) --Ensure this is ok..          
-    local writeHandle = io.open( writePath, "wb" ) --Ensure this is ok..
-        
-    if not writeHandle then
-        error( "idUtils:copyFile - Problem opening write file path" )
-        results = false
-    else
-        -- Read the file from the source directory and write it to the destination directory
-        local data = readHandle:read( "*a" )
-         
-		-- Check if we were able to read the data file
-        if not data then
-            error( "idUtils:copyFile - Problem reading data!" )
-            results = false
-        else
-            if not writeHandle:write( data ) then
-                print( "idUtils:copyFile - Problem writing data!" ) 
-                results = false
-            end
-        end
-    end
-        
-    -- Clean up our file handles
-    readHandle:close()
-    readHandle = nil
-    writeHandle:close()
-    writeHandle = nil
- 
-	return results  
-end
-
---------------------------------------------------
-
 
 -- Require the plugin library
 local pasteboard = require( "plugin.pasteboard" )
@@ -66,36 +29,22 @@ imgContainer:setFillColor( 0 )
 imgContainer.img = nil
 
 -- Set the data types this application allows (from a paste)
---pasteboard.setAllowedTypes( { "url", "string", "image" } )
+pasteboard.setAllowedTypes( { "url", "string", "image" } )
 
 -- Query the type of data on the pasteboard
---local pType = pasteboard.getType()
+local pType = pasteboard.getType()
 
 -- Print the data type
---print( "Type of data on pasteboard is:", pType )
+print( "Type of data on pasteboard is:", pType )
 
 -- Callback function for the paste method
 local function onPaste( event )
-	print( ">>>> WE MADE IT INTO THE PASTE COMPLETION LISTENER <<<<" )
-
-	if "table" == type( event ) then
-		for k, v in pairs( event ) do
-			print( k, v )
-		end
-	end
-
-
-	
-	--print( "Pasting a/an ", pasteboard.getType() )
+	print( "event name:", event.name )
+	print( "event type:", event.type )
+	print( "Pasting a/an ", pasteboard.getType() )
 	
 	-- Paste an image
 	if event.filename then
-		--print( "IMAGE" )
-		--display.remove( imgContainer.img )
-		
-		--print( "filename is:", event.filename )
-		--print( "baseDir is:", event.baseDir )
-
 		imgContainer.img = display.newImageRect( event.filename, event.baseDir, 80, 80 )
 		imgContainer.img.alpha = 0
 		imgContainer.img.x = imgContainer.x
@@ -105,86 +54,62 @@ local function onPaste( event )
 	
 	-- Paste a string
 	if event.string then
-		--print( "STRING" )
-		--local text = display.newText( event.string, 0, 0, native.systemFontBold, 16 )
-		--text.x = display.contentCenterX
-		--text.y = display.contentCenterY
+		-- Update the textfield's text
 		textField.text = event.string
 	end
 	
 	-- Paste a url
 	if event.url then
-		--print( "URL" )
+		-- Update the textfield's text
 		textField.text = event.url
-		--local webView = native.newWebView( 0, 0, display.contentWidth, display.contentHeight )
-		--webView:request( event.url )
 	end
 end
 
---[[
--- Copy a file to the temporary directory (for testing)
-copyFile( 
-{ 
-	sourceFile = "Icon.png",
-	sourcePath = system.ResourceDirectory,
-	destinationFile = "tempTest.png",
-	destinationPath = system.TemporaryDirectory,
-})
---]]
+-- Widget button handlers
+-----------------------------------------------------------------
 
---[[
--- Copy a file to the caches directory (for testing)
-copyFile( 
-{ 
-	sourceFile = "Icon.png",
-	sourcePath = system.ResourceDirectory,
-	destinationFile = "cacheTest.png",
-	destinationPath = system.CachesDirectory,
-})
---]]
-
----[[
--- Copy a file to the documents directory (for testing)
-copyFile( 
-{ 
-	sourceFile = "Icon.png.txt",
-	sourcePath = system.ResourceDirectory,
-	destinationFile = "docsTest.png",
-	destinationPath = system.DocumentsDirectory,
-})
---]]
-
--- Test image copy to pasteboard
-local function copyImage()	
-	pasteboard.copy( "image", "Icon.png", system.ResourceDirectory )
-	--pasteboard.copy( "image", "docsTest.png", system.DocumentsDirectory )
-	--pasteboard.copy( "image", "tempTest.png", system.TemporaryDirectory )
-	--pasteboard.copy( "image", "tempTest.png", system.CachesDirectory )
+-- Function to clear the pasteboard
+local function clearPasteboard()
+	pasteButton.clear()
 end
 
--- Test copying a string to the pasteboard
+-- Function to copy an Image to pasteboard
+local function copyImage()	
+	pasteboard.copy( "image", "Icon.png", system.ResourceDirectory )
+end
+
+-- Function to copy a string to the pasteboard
 local function copyString()
 	pasteboard.copy( "string", "Hello Corona World!" )
 end
 
--- Test copying a url to the pasteboard
+-- Function to copy a url to the pasteboard
 local function copyUrl()
 	pasteboard.copy( "url", "http://www.coronalabs.com" )
 end
 
--- Paste whatever is on the clipboard
+-- Function to paste the contents of the pasteboard
 local function paste()
 	pasteboard.paste( onPaste )
 end
 
-local img = display.newImage( "docsTest.png", system.DocumentsDirectory )
-print( "path" .. system.pathForFile( "docsTest.png", system.DocumentsDirectory ) )
+-- Create widget buttons
+-----------------------------------------------------------------
+
+-- Button - Clear Pasteboard
+local clearButton = widget.newButton
+{
+	left = 60,
+	top = 230,
+	label = "Clear Pasteboard",
+	onRelease = clearPasteboard,
+}
 
 -- Button - Copy Image
 local copyImageButton = widget.newButton
 {
 	left = 60,
-	top = 230,
+	top = clearButton.y + clearButton.contentHeight - 28,
 	label = "Copy Image",
 	onRelease = copyImage,
 }
@@ -193,7 +118,7 @@ local copyImageButton = widget.newButton
 local copyStringButton = widget.newButton
 {
 	left = 60,
-	top = copyImageButton.y + copyImageButton.contentHeight - 10,
+	top = copyImageButton.y + copyImageButton.contentHeight - 28,
 	label = "Copy String",
 	onRelease = copyString,
 }
@@ -202,7 +127,7 @@ local copyStringButton = widget.newButton
 local copyUrlButton = widget.newButton
 {
 	left = 60,
-	top = copyStringButton.y + copyStringButton.contentHeight - 10,
+	top = copyStringButton.y + copyStringButton.contentHeight - 28,
 	label = "Copy Url",
 	onRelease = copyUrl,
 }
@@ -211,7 +136,7 @@ local copyUrlButton = widget.newButton
 local pasteButton = widget.newButton
 {
 	left = 60,
-	top = copyUrlButton.y + copyUrlButton.contentHeight - 10,
+	top = copyUrlButton.y + copyUrlButton.contentHeight - 28,
 	label = "Paste",
 	onRelease = paste,
 }
