@@ -70,7 +70,7 @@ end
 
 -- Function to clear the pasteboard
 local function clearPasteboard()
-	pasteButton.clear()
+	pasteboard.clear()
 end
 
 -- Function to copy an Image to pasteboard
