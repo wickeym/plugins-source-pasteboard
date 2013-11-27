@@ -21,10 +21,10 @@ background.y = display.contentCenterY
 background:addEventListener( "touch", function() native.setKeyboardFocus( nil ) end )
 
 -- Create a textfield
-local textField = native.newTextField( 60, 40, 200, 40 )
+local textField = native.newTextField( display.contentCenterX, 60, 200, 40 )
 
 -- Container for our image
-local imgContainer = display.newRect( 100, 100, 100, 100 )
+local imgContainer = display.newRect( display.contentCenterX, 160, 100, 100 )
 imgContainer:setFillColor( 0 )
 imgContainer.img = nil
 
