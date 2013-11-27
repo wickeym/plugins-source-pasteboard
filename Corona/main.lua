@@ -37,6 +37,9 @@ local pType = pasteboard.getType()
 -- Print the data type
 print( "Type of data on pasteboard is:", pType )
 
+-- Handler for our transition
+local imgTransition = nil
+
 -- Callback function for the paste method
 local function onPaste( event )
 	print( "event name:", event.name )
@@ -45,11 +48,18 @@ local function onPaste( event )
 	
 	-- Paste an image
 	if event.filename then
+		display.remove( imgContainer.img )
+		imgContainer.img = nil
 		imgContainer.img = display.newImageRect( event.filename, event.baseDir, 80, 80 )
 		imgContainer.img.alpha = 0
 		imgContainer.img.x = imgContainer.x
 		imgContainer.img.y = imgContainer.y
-		transition.to( imgContainer.img, { alpha = 1 } )
+
+		if imgTransition then
+			transition.cancel( imgTransition )
+			imgTransition = nil
+		end
+		imgTransition = transition.to( imgContainer.img, { alpha = 1 } )
 	end
 	
 	-- Paste a string
