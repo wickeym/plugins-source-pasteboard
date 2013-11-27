@@ -141,49 +141,6 @@ pasteboardLibrary::Initialize( void *platformContext )
 
 // ----------------------------------------------------------------------------
 
-// Function to return a string for the chosen base directory
-static const char *
-baseDirectoryToString( lua_State *L, void *baseDir )
-{
-	const char *baseDirStr = NULL;
-
-	// Get the paths
-	lua_getglobal( L, "system" );
-	lua_getfield( L, -1, "ResourceDirectory" );
-	void *resourceDirectoryConstant = lua_touserdata( L, -1 );
-	lua_pop( L, 1 );
-	lua_getfield( L, -1, "DocumentsDirectory" );
-	void *documentsDirectoryConstant = lua_touserdata( L, -1 );
-	lua_pop( L, 1 );
-	lua_getfield( L, -1, "TemporaryDirectory" );
-	void *temporaryDirectoryConstant = lua_touserdata( L, -1 );
-	lua_pop( L, 1 );
-	lua_getfield( L, -1, "CachesDirectory" );
-	void *cachesDirectoryConstant = lua_touserdata( L, -1 );
-	lua_pop( L, 2 ); // Pop the caches key and the system key from the stack
-	
-	// Check which system constant the user specified
-	if ( baseDir == resourceDirectoryConstant)
-	{
-		baseDirStr = "ResourceDirectory";
-	}
-	else if ( baseDir == documentsDirectoryConstant )
-	{
-		baseDirStr = "DocumentsDirectory";
-	}
-	else if ( baseDir == temporaryDirectoryConstant )
-	{
-		baseDirStr = "TemporaryDirectory";
-	}
-	else if ( baseDir == cachesDirectoryConstant )
-	{
-		baseDirStr = "CachesDirectory";
-	}
-	
-	return baseDirStr;
-}
-
-
 // Types of data allowed to be pasted
 static bool isImagePastingAllowed = true;
 static bool isStringPastingAllowed = true;
@@ -299,48 +256,19 @@ pasteboardLibrary::copy( lua_State *L )
 	{
 		// The image filename
 		const char *fileName = lua_tostring( L, 2 );
+		lua_pop( L, 1 );
 
-		// File path and filename
-		NSString *filePath = nil;
-		NSString *fileFromCString = [NSString stringWithUTF8String:fileName];
-		
-		// The specified system directory path constant
-		void *userPathConstant = lua_touserdata( L, 3 );
-		
-		// Get the baseDir as a string
-		const char *baseDir = baseDirectoryToString( L, userPathConstant );
-		
-		// Check which system constant the user specified
-		if ( 0 == strcmp( "ResourceDirectory", baseDir ) )
-		{
-			// Set the filePath
-			filePath = [[NSBundle mainBundle] pathForResource:fileFromCString ofType:nil];
-		}
-		else if ( 0 == strcmp( "DocumentsDirectory", baseDir ) )
-		{
-			// Get the documents path
-			NSString *documentsPath = [NSSearchPathForDirectoriesInDomains( NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
-			
-			// Set the filePath
-			filePath = [documentsPath stringByAppendingPathComponent:fileFromCString];
-		}
-		else if ( 0 == strcmp( "TemporaryDirectory", baseDir ) )
-		{
-			// Set the filePath
-			filePath = [NSTemporaryDirectory() stringByAppendingPathComponent:fileFromCString];
-		}
-		else if ( 0 == strcmp( "CachesDirectory", baseDir ) )
-		{
-			// Get the caches path
-			NSString *cachespath = [NSSearchPathForDirectoriesInDomains( NSCachesDirectory, NSUserDomainMask, YES) lastObject];
-			// Set the filePath
-			filePath = [cachespath stringByAppendingString:[NSString stringWithFormat:@"/caches/%@", fileFromCString]];
-		}
-		else
-		{
-			luaL_error( L, "baseDirectory expected, got nil" );
-		}
-				
+		// Get the path to the file
+		lua_getglobal( L, "system" );
+		lua_getfield( L, -1, "pathForFile" );
+		lua_pushstring( L, fileName );
+		lua_pushvalue( L, 2 );
+		lua_call( L, 2, 1 );  // Call pathForFile() with 2 arguments and 1 return value.
+		const char *path = lua_tostring( L, -1 );
+	
+		// File path
+		NSString *filePath = [NSString stringWithUTF8String:path];
+
 		// Attempt to create the image
 		UIImage *image = [UIImage imageWithContentsOfFile:filePath];
 		
