@@ -265,6 +265,7 @@ pasteboardLibrary::copy( lua_State *L )
 		lua_pushvalue( L, 2 );
 		lua_call( L, 2, 1 );  // Call pathForFile() with 2 arguments and 1 return value.
 		const char *path = lua_tostring( L, -1 );
+		lua_pop( L, 1 );
 	
 		// File path
 		NSString *filePath = [NSString stringWithUTF8String:path];
@@ -417,7 +418,7 @@ pasteboardLibrary::paste( lua_State *L )
 			lua_getglobal( L, "system" );
 			lua_getfield( L, -1, "DocumentsDirectory" );
 			lua_setfield( L, -3, "baseDir" );
-			lua_pop( L, 1 ); //Pop the system table
+			lua_pop( L, 1 ); // Pop the system table
 			
 			// Dispatch the event
 			Lua::DispatchEvent( L, listenerRef, 0 );
