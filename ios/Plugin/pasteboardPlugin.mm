@@ -256,13 +256,12 @@ pasteboardLibrary::copy( lua_State *L )
 	{
 		// The image filename
 		const char *fileName = lua_tostring( L, 2 );
-		lua_pop( L, 1 );
-
+		
 		// Get the path to the file
 		lua_getglobal( L, "system" );
 		lua_getfield( L, -1, "pathForFile" );
 		lua_pushstring( L, fileName );
-		lua_pushvalue( L, 2 );
+		lua_pushvalue( L, 3 );
 		lua_call( L, 2, 1 );  // Call pathForFile() with 2 arguments and 1 return value.
 		const char *path = lua_tostring( L, -1 );
 		lua_pop( L, 1 );
