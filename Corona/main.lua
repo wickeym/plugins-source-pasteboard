@@ -32,10 +32,10 @@ imgContainer.img = nil
 pasteboard.setAllowedTypes( { "url", "string", "image" } )
 
 -- Query the type of data on the pasteboard
-local pType = pasteboard.getType()
+--local pType = pasteboard.getType()
 
 -- Print the data type
-print( "Type of data on pasteboard is:", pType )
+--print( "Type of data on pasteboard is:", pType )
 
 -- Handler for our transition
 local imgTransition = nil

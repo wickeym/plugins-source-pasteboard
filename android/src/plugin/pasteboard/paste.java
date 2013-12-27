@@ -8,16 +8,8 @@
 // Package name
 package plugin.pasteboard;
 
-// Java Imports
-import java.util.*;
-import java.lang.*;
-
 // Android Imports
-import android.content.Intent;
 import android.content.Context;
-import android.net.Uri;
-import android.content.pm.ResolveInfo;
-import android.os.Parcelable;
 
 // JNLua imports
 import com.naef.jnlua.LuaState;
@@ -28,17 +20,13 @@ import com.ansca.corona.CoronaActivity;
 import com.ansca.corona.CoronaEnvironment;
 import com.ansca.corona.CoronaLua;
 import com.ansca.corona.CoronaRuntime;
-import com.ansca.corona.CoronaRuntimeListener;
 import com.ansca.corona.CoronaRuntimeTask;
 import com.ansca.corona.CoronaRuntimeTaskDispatcher;
-import com.ansca.corona.storage.FileContentProvider;
-import com.ansca.corona.storage.FileServices;
-
 
 /**
- * Implements the copy() function in Lua.
+ * Implements the paste() function in Lua.
  * <p>
- * Checks whether a chooser dialog can show the specified service.
+ * Allows pasting of strings/urls from the pasteboard/clipboard.
  */
 public class paste implements com.naef.jnlua.NamedJavaFunction 
 {
@@ -118,7 +106,7 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 							dataType = "url";
 
 							// Debug
-							System.out.println( ">>>> There is a URL on the Clipboard <<<<" );
+							//System.out.println( ">>>> There is a URL on the Clipboard <<<<" );
 						}
 						else
 						{
@@ -126,7 +114,7 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 							dataType = "string";
 
 							// Debug
-							System.out.println( ">>>> There is a STRING on the Clipboard <<<<" );
+							//System.out.println( ">>>> There is a STRING on the Clipboard <<<<" );
 						}
 					}
 				}
@@ -154,7 +142,7 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 						dataType = "url";
 
 						// Debug
-						System.out.println( ">>>> There is a URL on the Clipboard <<<<" );
+						//System.out.println( ">>>> There is a URL on the Clipboard <<<<" );
 					}
 					else
 					{
@@ -162,7 +150,7 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 						dataType = "string";
 
 						// Debug
-						System.out.println( ">>>>There is a STRING on the Clipboard <<<<" );
+						//System.out.println( ">>>>There is a STRING on the Clipboard <<<<" );
 					}
 				}
 			}
@@ -238,11 +226,10 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 		}
 
 		// Debug
-		System.out.println( ">>> String on the Clipboard is: " + result + "<<<" );
+		//System.out.println( ">>> String on the Clipboard is: " + result + "<<<" );
 		
 		return result;
 	}
-
 
 	// Event task
 	private static class LuaCallBackListenerTask implements CoronaRuntimeTask 
@@ -339,14 +326,33 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 					// If the pasteType isn't "none"
 					if ( ! pasteType.equalsIgnoreCase( "none" ) )
 					{
-						// The string from the Clipboard
-						String pasteboardString = pasteStringFromClipboard();
+						// If we are allowed to paste
+						boolean canPaste = true;
 
-						// Create the task
-						LuaCallBackListenerTask task = new LuaCallBackListenerTask( fListener, pasteType, pasteboardString );
+						// If the paste type is "string" and we are not allowed to paste "strings", set the canPasteString to false
+						if ( pasteType.equalsIgnoreCase( "string" ) && !allowedTypes.canPasteString ) 
+						{
+							canPaste = false;
+						}
 
-						// Send the task to the Corona runtime asynchronously.
-						dispatcher.send( task );
+						// If the paste type is "url" and we are not allowed to paste "urls", set the canPasteUrl to false
+						else if ( pasteType.equalsIgnoreCase( "url" ) && !allowedTypes.canPasteUrl ) 
+						{
+							canPaste = false;
+						}
+
+						// If we are allowed to paste..
+						if ( canPaste )
+						{
+							// The string from the Clipboard
+							String pasteboardString = pasteStringFromClipboard();
+
+							// Create the task
+							LuaCallBackListenerTask task = new LuaCallBackListenerTask( fListener, pasteType, pasteboardString );
+
+							// Send the task to the Corona runtime asynchronously.
+							dispatcher.send( task );
+						}
 					}
 				}
 			};

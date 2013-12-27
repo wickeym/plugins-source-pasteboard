@@ -28,7 +28,7 @@ public class LuaHelper
 		luaState.pushValue( baseDirIndex );
 		luaState.call( 2, 1 ); // Call pathForFile() with 2 arguments and 1 return value.
 		filePath = luaState.toString( -1 );
-		luaState.pop( 2 );
+		luaState.pop( 1 );
 
 		// Return the filePath
 		return filePath;

@@ -25,7 +25,7 @@ import com.ansca.corona.CoronaRuntimeListener;
 import com.ansca.corona.CoronaRuntimeTask;
 
 /**
- * Implements the Lua interface for the social plugin.
+ * Implements the Lua interface for the pasteboard plugin.
  * <p>
  * Only one instance of this class will be created by Corona for the lifetime of the application.
  * This instance will be re-used for every new Corona activity that gets created.
@@ -65,6 +65,9 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 		{
 			new copy(),
 			new paste(),
+			new setAllowedTypes(),
+			new getType(),
+			new clear(),
 		};
 		String libName = L.toString( 1 );
 		L.register( libName, luaFunctions );
