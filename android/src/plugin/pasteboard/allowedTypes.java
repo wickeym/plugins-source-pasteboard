@@ -13,4 +13,5 @@ public class allowedTypes
 {
 	public static boolean canPasteString = true;
 	public static boolean canPasteUrl = true;
+	public static String currentPasteboardItem;
 }

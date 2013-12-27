@@ -31,11 +31,19 @@ imgContainer.img = nil
 -- Set the data types this application allows (from a paste)
 pasteboard.setAllowedTypes( { "url", "string", "image" } )
 
--- Query the type of data on the pasteboard
---local pType = pasteboard.getType()
+local function getType()
+	local function bla()
+		-- Query the type of data on the pasteboard
+		local pType = pasteboard.getType()
 
--- Print the data type
---print( "Type of data on pasteboard is:", pType )
+		-- Print the data type
+		print( "Type of data on pasteboard is:", pType )
+	end
+
+	timer.performWithDelay( 100, bla )
+end
+
+getType()
 
 -- Handler for our transition
 local imgTransition = nil
@@ -91,16 +99,19 @@ end
 -- Function to copy a string to the pasteboard
 local function copyString()
 	pasteboard.copy( "string", "Hello Corona World!" )
+	getType()
 end
 
 -- Function to copy a url to the pasteboard
 local function copyUrl()
 	pasteboard.copy( "url", "http://www.coronalabs.com" )
+	getType()
 end
 
 -- Function to paste the contents of the pasteboard
 local function paste()
 	pasteboard.paste( onPaste )
+	getType()
 end
 
 -- Create widget buttons
