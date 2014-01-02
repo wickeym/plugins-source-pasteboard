@@ -52,6 +52,14 @@ public class ClipboardListener
 				public void run()
 				{
 					clipboardManager = ( android.content.ClipboardManager )context.getSystemService( context.CLIPBOARD_SERVICE );
+					// Get the primary clip
+					android.content.ClipData clipData = clipboardManager.getPrimaryClip();
+							
+					// Set the clipdata item
+					android.content.ClipData.Item item = clipData.getItemAt( 0 );
+					shared.currentPasteboardItem = item.getText().toString();
+
+					// Clip changed listener
 					primaryClipChangedListener = new android.content.ClipboardManager.OnPrimaryClipChangedListener()
 					{
 						public void onPrimaryClipChanged()
@@ -116,6 +124,8 @@ public class ClipboardListener
 				// Setup a Clipboard manager instance
 				final android.text.ClipboardManager clipboardManager;
 				clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
+				// Set the currentPasteboard item to the new text
+				shared.currentPasteboardItem = clipboardManager.getText().toString();
 
 				// Start the timer
 				timer.scheduleAtFixedRate( new java.util.TimerTask() 
