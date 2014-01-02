@@ -52,31 +52,8 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 		CoronaEnvironment.addRuntimeListener( this );
 	}
 
-	// Application context
-	private Context context;
-	// TImer
-	private Timer timer;
-
-	// Function to get the current string on the Clipboard on api < 11
-	private void getStringApiLessThan11( Context context )
-	{
-		// Create a new timer
-		timer = new Timer();
-		// Setup a Clipboard manager instance
-		final android.text.ClipboardManager clipboardManager;
-		clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
-
-		// Start the timer
-		timer.scheduleAtFixedRate( new java.util.TimerTask() 
-		{
-              	@Override
-              	public void run()
-              	{
-              		// Set the currentPasteboard item to the new text
-              		allowedTypes.currentPasteboardItem = clipboardManager.getText().toString();
-              	}
-         	 }, 0, 100 ); 
-	}
+	// The clipboard listener
+	ClipboardListener clipboardListener;
 
 	/**
 	 * Called when this plugin is being loaded via the Lua require() function.
@@ -105,21 +82,10 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 		String libName = L.toString( 1 );
 		L.register( libName, luaFunctions );
 
-
-		// Get the application context
-		context = CoronaEnvironment.getApplicationContext();
-
-		// Api levels above or equal to 11
-		if ( android.os.Build.VERSION.SDK_INT >= 11 )
-		{
-			ClipboardListener clipListener = new ClipboardListener();
-			clipListener.addClipChangedListener( context );
-		}
-		else
-		{
-			// Get string from clipboard
-			getStringApiLessThan11( context );
-		}
+		// Create an instance of the clipboard listener
+		clipboardListener = new ClipboardListener();
+		// Add the listener
+		clipboardListener.addClipChangedListener();
 
 		// Returning 1 indicates that the Lua require() function will return the above Lua library.
 		return 1;
@@ -163,11 +129,8 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 	@Override
 	public void onSuspended( CoronaRuntime runtime ) 
 	{
-		// Cancel the timer
-		if ( android.os.Build.VERSION.SDK_INT <= 10 )
-		{
-			timer.cancel();
-		}
+		// Remove the clipboard listener
+		clipboardListener.removeClipChangedListener();
 	}
 
 	/**
@@ -179,11 +142,8 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 	@Override
 	public void onResumed( CoronaRuntime runtime ) 
 	{
-		// Get string from clipboard
-		if ( android.os.Build.VERSION.SDK_INT <= 10 )
-		{
-			getStringApiLessThan11( context );
-		}
+		// Add the clipboard listener
+		clipboardListener.addClipChangedListener();
 	}
 
 	/**
@@ -199,9 +159,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 	@Override
 	public void onExiting( CoronaRuntime runtime ) 
 	{
-		if ( android.os.Build.VERSION.SDK_INT <= 10 )
-		{
-			timer.cancel();
-		}
+		// Remove the clipboard listener
+		clipboardListener.removeClipChangedListener();
 	}
 }

@@ -87,15 +87,14 @@ public class getType implements com.naef.jnlua.NamedJavaFunction
 	@Override
 	public int invoke( final LuaState luaState ) 
 	{
-		final String dataType =  allowedTypes.currentPasteboardItem;
+		final String dataType = shared.currentPasteboardItem;
 
-		System.out.println( "DATATYPE STR IS: " + dataType );
-
+		// If there is no data on the Clipboard, push nil
 		if (  dataType == null || dataType.equalsIgnoreCase( "" )  )
 		{
 			luaState.pushNil();
-			System.out.println( "Pushing nil, YAHOO" );
 		}
+		// Data found, push the string
 		else
 		{
 			if ( canStringResolveToURL( dataType ) )
@@ -108,6 +107,7 @@ public class getType implements com.naef.jnlua.NamedJavaFunction
 			}
 		}
 		
+		// This function returns one value
 		return 1;
 	}
 }

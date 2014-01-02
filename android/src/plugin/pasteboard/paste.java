@@ -330,13 +330,13 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 						boolean canPaste = true;
 
 						// If the paste type is "string" and we are not allowed to paste "strings", set the canPasteString to false
-						if ( pasteType.equalsIgnoreCase( "string" ) && !allowedTypes.canPasteString ) 
+						if ( pasteType.equalsIgnoreCase( "string" ) && !shared.canPasteString ) 
 						{
 							canPaste = false;
 						}
 
 						// If the paste type is "url" and we are not allowed to paste "urls", set the canPasteUrl to false
-						else if ( pasteType.equalsIgnoreCase( "url" ) && !allowedTypes.canPasteUrl ) 
+						else if ( pasteType.equalsIgnoreCase( "url" ) && !shared.canPasteUrl ) 
 						{
 							canPaste = false;
 						}

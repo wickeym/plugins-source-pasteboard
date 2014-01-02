@@ -99,19 +99,16 @@ end
 -- Function to copy a string to the pasteboard
 local function copyString()
 	pasteboard.copy( "string", "Hello Corona World!" )
-	getType()
 end
 
 -- Function to copy a url to the pasteboard
 local function copyUrl()
 	pasteboard.copy( "url", "http://www.coronalabs.com" )
-	getType()
 end
 
 -- Function to paste the contents of the pasteboard
 local function paste()
 	pasteboard.paste( onPaste )
-	getType()
 end
 
 -- Create widget buttons

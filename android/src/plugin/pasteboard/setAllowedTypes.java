@@ -51,8 +51,8 @@ public class setAllowedTypes implements com.naef.jnlua.NamedJavaFunction
 			if ( luaState.isTable( -1 ) )
 			{
 				// Set the allowed paste types to false
-				allowedTypes.canPasteString = false;
-				allowedTypes.canPasteUrl = false;
+				shared.canPasteString = false;
+				shared.canPasteUrl = false;
 
 				// Get the tables length
 				numTypes = luaState.length( -1 );
@@ -72,13 +72,13 @@ public class setAllowedTypes implements com.naef.jnlua.NamedJavaFunction
 					// If the type is "string", allow pasting of strings
 					if ( type.equalsIgnoreCase( "string" ) )
 					{
-						allowedTypes.canPasteString = true;
+						shared.canPasteString = true;
 					}
 
 					// If the type is "url", allow pasting of Url's
 					if ( type.equalsIgnoreCase( "url" )  )
 					{
-						allowedTypes.canPasteUrl = true;
+						shared.canPasteUrl = true;
 					}
 
 					// Pop the type
@@ -89,8 +89,8 @@ public class setAllowedTypes implements com.naef.jnlua.NamedJavaFunction
 			// If the types field is nil, disable pasting
 			if ( luaState.isNil( -1 ) )
 			{
-				allowedTypes.canPasteString = false;
-				allowedTypes.canPasteUrl = false;
+				shared.canPasteString = false;
+				shared.canPasteUrl = false;
 			}
 		} 
 		catch( Exception ex )

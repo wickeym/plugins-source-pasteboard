@@ -141,7 +141,7 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 			    // Run the activity on the uiThread
 			    if ( coronaActivity != null )
 			    {
-			    		coronaActivity.runOnUiThread( activityRunnable );
+			    	coronaActivity.runOnUiThread( activityRunnable );
 			    }
 			}
 		}

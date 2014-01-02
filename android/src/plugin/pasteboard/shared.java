@@ -1,5 +1,5 @@
 //
-//  allowedTypes.java
+//  shared.java
 //  Pasteboard Plugin
 //
 //  Copyright (c) 2013 Coronalabs. All rights reserved.
@@ -9,7 +9,7 @@
 package plugin.pasteboard;
 
 // The types of data we can paste
-public class allowedTypes
+public class shared
 {
 	public static boolean canPasteString = true;
 	public static boolean canPasteUrl = true;
