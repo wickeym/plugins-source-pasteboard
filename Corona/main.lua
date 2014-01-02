@@ -31,8 +31,9 @@ imgContainer.img = nil
 -- Set the data types this application allows (from a paste)
 pasteboard.setAllowedTypes( { "url", "string", "image" } )
 
+-- Retrieve the type of data on the pasteboard
 local function getType()
-	local function bla()
+	local function printType()
 		-- Query the type of data on the pasteboard
 		local pType = pasteboard.getType()
 
@@ -40,10 +41,9 @@ local function getType()
 		print( "Type of data on pasteboard is:", pType )
 	end
 
-	timer.performWithDelay( 100, bla )
+	timer.performWithDelay( 100, printType )
 end
 
-getType()
 
 -- Handler for our transition
 local imgTransition = nil
@@ -114,29 +114,27 @@ end
 -- Create widget buttons
 -----------------------------------------------------------------
 
--- Button - Clear Pasteboard
-local clearButton = widget.newButton
-{
-	left = 60,
-	top = 230,
-	label = "Clear Pasteboard",
-	onRelease = clearPasteboard,
-}
+-- Positioning vars
+local topPosition = 230
 
--- Button - Copy Image
-local copyImageButton = widget.newButton
-{
-	left = 60,
-	top = clearButton.y + clearButton.contentHeight - 28,
-	label = "Copy Image",
-	onRelease = copyImage,
-}
+-- Only show the image copy button on iOS
+if system.getInfo( "platformName" ) ~= "Android" then
+	-- Button - Copy Image
+	local copyImageButton = widget.newButton
+	{
+		left = 60,
+		top = topPosition,
+		label = "Copy Image",
+		onRelease = copyImage,
+	}
+	topPosition = copyImageButton.y + copyImageButton.contentHeight - 28
+end
 
 -- Button - Copy String
 local copyStringButton = widget.newButton
 {
 	left = 60,
-	top = copyImageButton.y + copyImageButton.contentHeight - 28,
+	top = topPosition,
 	label = "Copy String",
 	onRelease = copyString,
 }
@@ -157,4 +155,13 @@ local pasteButton = widget.newButton
 	top = copyUrlButton.y + copyUrlButton.contentHeight - 28,
 	label = "Paste",
 	onRelease = paste,
+}
+
+-- Button - Clear Pasteboard
+local clearButton = widget.newButton
+{
+	left = 60,
+	top = pasteButton.y + pasteButton.contentHeight - 28,
+	label = "Clear Pasteboard",
+	onRelease = clearPasteboard,
 }
