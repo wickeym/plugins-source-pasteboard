@@ -52,12 +52,17 @@ public class ClipboardListener
 				public void run()
 				{
 					clipboardManager = ( android.content.ClipboardManager )context.getSystemService( context.CLIPBOARD_SERVICE );
-					// Get the primary clip
-					android.content.ClipData clipData = clipboardManager.getPrimaryClip();
-							
-					// Set the clipdata item
-					android.content.ClipData.Item item = clipData.getItemAt( 0 );
-					shared.currentPasteboardItem = item.getText().toString();
+					
+					// If the Clipboard contains data
+					if ( clipboardManager.hasPrimaryClip() )
+					{
+						// Get the primary clip
+						android.content.ClipData clipData = clipboardManager.getPrimaryClip();
+								
+						// Set the clipdata item
+						android.content.ClipData.Item item = clipData.getItemAt( 0 );
+						shared.currentPasteboardItem = item.getText().toString();
+					}
 
 					// Clip changed listener
 					primaryClipChangedListener = new android.content.ClipboardManager.OnPrimaryClipChangedListener()
@@ -66,14 +71,19 @@ public class ClipboardListener
 						{
 							// Assign the clipboard manager
 							clipboardManager = ( android.content.ClipboardManager )context.getSystemService( context.CLIPBOARD_SERVICE );
-							// Get the primary clip
-							android.content.ClipData clipData = clipboardManager.getPrimaryClip();
 							
-							// Set the clipdata item
-							android.content.ClipData.Item item = clipData.getItemAt( 0 );
+							// If the Clipboard contains data
+							if ( clipboardManager.hasPrimaryClip() )
+							{
+								// Get the primary clip
+								android.content.ClipData clipData = clipboardManager.getPrimaryClip();
+								
+								// Set the clipdata item
+								android.content.ClipData.Item item = clipData.getItemAt( 0 );
 
-							// Set the currentPasteboard item to the new text
-							shared.currentPasteboardItem = item.getText().toString();
+								// Set the currentPasteboard item to the new text
+								shared.currentPasteboardItem = item.getText().toString();
+							}
 						}
 					};
 
