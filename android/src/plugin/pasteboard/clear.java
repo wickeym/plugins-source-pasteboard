@@ -1,5 +1,5 @@
 //
-//  copy.java
+//  clear.java
 //  Pasteboard Plugin
 //
 //  Copyright (c) 2013 Coronalabs. All rights reserved.
@@ -20,11 +20,11 @@ import com.ansca.corona.CoronaActivity;
 import com.ansca.corona.CoronaEnvironment;
 
 /**
- * Implements the copy() function in Lua.
+ * Implements the clear() function in Lua.
  * <p>
- * Allows copying of strings/urls to the pasteboard/clipboard.
+ * Allows clearing of data on the pasteboard/clipboard.
  */
-public class copy implements com.naef.jnlua.NamedJavaFunction 
+public class clear implements com.naef.jnlua.NamedJavaFunction 
 {
 	/**
 	 * Gets the name of the Lua function as it would appear in the Lua script.
@@ -33,7 +33,7 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 	@Override
 	public String getName() 
 	{
-		return "copy";
+		return "clear";
 	}
 
 	// Functions for API Level 11 and above
@@ -42,20 +42,14 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 		/** Constructor made private to prevent instances from being made. */
 		private ApiLevel11() { }
 
-		// Function to copy a String to the Clipboard
-		public static boolean copyStringToClipboard( Context context, String text )
+		// Function to clear the Clipboard
+		public static boolean clearClipboard( Context context )
 		{
-			// If there is no text, just return
-			if ( text == null )
-			{
-				return false;
-			}
-
 			// Setup a Clipboard manager instance
 			android.content.ClipboardManager clipboardManager;
 			clipboardManager = ( android.content.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
 			// Create a Clipdata object
-			android.content.ClipData data = android.content.ClipData.newPlainText( text, text );
+			android.content.ClipData data = android.content.ClipData.newPlainText( "", "" );
 			// Set the primary clip
 			clipboardManager.setPrimaryClip( data );
 
@@ -64,15 +58,9 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 	}
 
 
-	// Function to copy a String to the Clipboard
-	private boolean copyStringToClipboard( String text )
+	// Function to clear the Clipboard
+	private boolean clearClipboard()
 	{
-		// If there is no text, just return
-		if ( text == null )
-		{
-			return false;
-		}
-
 		// If we have a valid context
 		if ( CoronaEnvironment.getApplicationContext() != null )
 		{
@@ -82,7 +70,7 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 			// Api levels above or equal to 11
 			if ( android.os.Build.VERSION.SDK_INT >= 11 )
 			{
-				ApiLevel11.copyStringToClipboard( context, text );
+				ApiLevel11.clearClipboard( context );
 			}
 			// Api's older than 11
 			else
@@ -91,7 +79,7 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 				android.text.ClipboardManager clipboardManager;
 				clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
 				// Set the text
-				clipboardManager.setText( text );
+				clipboardManager.setText( "" );
 			}
 		}
 
@@ -112,9 +100,6 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 	{
 		try
 		{
-			// The type of data we want to copy to the clipboard
-			String copyType = luaState.checkString( 1 );
-
 			// Corona Activity
 			CoronaActivity coronaActivity = null;
 			if ( CoronaEnvironment.getCoronaActivity() != null )
@@ -122,28 +107,21 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 				coronaActivity = CoronaEnvironment.getCoronaActivity();
 			}
 
-			// If we are copying a String or Url
-			if ( copyType.equalsIgnoreCase( "string" ) || copyType.equalsIgnoreCase( "url" ) )
+			// Create a new runnable object to invoke our activity
+			Runnable activityRunnable = new Runnable()
 			{
-				// The string/url the user wishes to copy to the Clipboard
-				final String stringToCopy = luaState.checkString( 2 );				
-
-				// Create a new runnable object to invoke our activity
-				Runnable activityRunnable = new Runnable()
+				public void run()
 				{
-					public void run()
-					{
-						// Copy the string to the clipboard
-						copyStringToClipboard( stringToCopy );
-					}
-			    };
-
-			    // Run the activity on the uiThread
-			    if ( coronaActivity != null )
-			    {
-			    	coronaActivity.runOnUiThread( activityRunnable );
-			    }
-			}
+					// Clear the clipboard
+					clearClipboard();
+			   	}
+			};
+		    
+		    // Run the activity on the uiThread
+		    if ( coronaActivity != null )
+		    {
+		    		coronaActivity.runOnUiThread( activityRunnable );
+		    }
 		}
 		catch( Exception ex )
 		{

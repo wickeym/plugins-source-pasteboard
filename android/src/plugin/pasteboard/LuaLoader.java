@@ -11,6 +11,13 @@
 // Package name
 package plugin.pasteboard;
 
+// Java Imports
+import java.util.*;
+import java.lang.*;
+
+// Android Imports
+import android.content.Context;
+
 // JNLua imports
 import com.naef.jnlua.LuaState;
 import com.naef.jnlua.JavaFunction;
@@ -25,7 +32,7 @@ import com.ansca.corona.CoronaRuntimeListener;
 import com.ansca.corona.CoronaRuntimeTask;
 
 /**
- * Implements the Lua interface for the social plugin.
+ * Implements the Lua interface for the pasteboard plugin.
  * <p>
  * Only one instance of this class will be created by Corona for the lifetime of the application.
  * This instance will be re-used for every new Corona activity that gets created.
@@ -44,6 +51,9 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 		// onLoaded(), onStarted(), onSuspended(), onResumed(), and onExiting().
 		CoronaEnvironment.addRuntimeListener( this );
 	}
+
+	// The clipboard listener
+	ClipboardListener clipboardListener;
 
 	/**
 	 * Called when this plugin is being loaded via the Lua require() function.
@@ -65,9 +75,17 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 		{
 			new copy(),
 			new paste(),
+			new setAllowedTypes(),
+			new getType(),
+			new clear(),
 		};
 		String libName = L.toString( 1 );
 		L.register( libName, luaFunctions );
+
+		// Create an instance of the clipboard listener
+		clipboardListener = new ClipboardListener();
+		// Add the listener
+		clipboardListener.addClipChangedListener();
 
 		// Returning 1 indicates that the Lua require() function will return the above Lua library.
 		return 1;
@@ -111,6 +129,8 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 	@Override
 	public void onSuspended( CoronaRuntime runtime ) 
 	{
+		// Remove the clipboard listener
+		clipboardListener.removeClipChangedListener();
 	}
 
 	/**
@@ -122,6 +142,8 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 	@Override
 	public void onResumed( CoronaRuntime runtime ) 
 	{
+		// Add the clipboard listener
+		clipboardListener.addClipChangedListener();
 	}
 
 	/**
@@ -137,5 +159,7 @@ public class LuaLoader implements JavaFunction, CoronaRuntimeListener
 	@Override
 	public void onExiting( CoronaRuntime runtime ) 
 	{
+		// Remove the clipboard listener
+		clipboardListener.removeClipChangedListener();
 	}
 }
