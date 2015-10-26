@@ -79,11 +79,6 @@ checkError
 "$SDK_PATH/tools/android" update lib-project -p "$CORONA_PATH/Corona/android/lib/Corona"
 checkError
 
-# Uncomment if using facebook
-# "$SDK_PATH/tools/android" update lib-project -p "$CORONA_PATH/Corona/android/lib/facebook/facebook"
-# checkError
-
-
 echo "Using Corona Enterprise Dir: $CORONA_PATH"
 
 # Build the Test project via the Ant build system.

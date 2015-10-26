@@ -67,32 +67,23 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 	// Function to copy a String to the Clipboard
 	private boolean copyStringToClipboard( String text )
 	{
-		// If there is no text, just return
-		if ( text == null )
+		// Verify environment
+		Context context = CoronaEnvironment.getApplicationContext();
+		if ( context == null || text == null ) { return false; }
+
+		// Api levels above or equal to 11
+		if ( android.os.Build.VERSION.SDK_INT >= 11 )
 		{
-			return false;
+			ApiLevel11.copyStringToClipboard( context, text );
 		}
-
-		// If we have a valid context
-		if ( CoronaEnvironment.getApplicationContext() != null )
+		// Api's older than 11
+		else
 		{
-			// Get the application context
-			Context context = CoronaEnvironment.getApplicationContext();
-
-			// Api levels above or equal to 11
-			if ( android.os.Build.VERSION.SDK_INT >= 11 )
-			{
-				ApiLevel11.copyStringToClipboard( context, text );
-			}
-			// Api's older than 11
-			else
-			{
-				// Setup a Clipboard manager instance
-				android.text.ClipboardManager clipboardManager;
-				clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
-				// Set the text
-				clipboardManager.setText( text );
-			}
+			// Setup a Clipboard manager instance
+			android.text.ClipboardManager clipboardManager;
+			clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
+			// Set the text
+			clipboardManager.setText( text );
 		}
 
 		return true;
@@ -115,12 +106,9 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 			// The type of data we want to copy to the clipboard
 			String copyType = luaState.checkString( 1 );
 
-			// Corona Activity
-			CoronaActivity coronaActivity = null;
-			if ( CoronaEnvironment.getCoronaActivity() != null )
-			{
-				coronaActivity = CoronaEnvironment.getCoronaActivity();
-			}
+			// Verify environment
+			CoronaActivity coronaActivity = CoronaEnvironment.getCoronaActivity();
+			if ( coronaActivity == null ) { return 0; }
 
 			// If we are copying a String or Url
 			if ( copyType.equalsIgnoreCase( "string" ) || copyType.equalsIgnoreCase( "url" ) )
@@ -139,10 +127,7 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 			    };
 
 			    // Run the activity on the uiThread
-			    if ( coronaActivity != null )
-			    {
-			    	coronaActivity.runOnUiThread( activityRunnable );
-			    }
+				coronaActivity.runOnUiThread( activityRunnable );
 			}
 		}
 		catch( Exception ex )

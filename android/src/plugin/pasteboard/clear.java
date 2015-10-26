@@ -61,26 +61,23 @@ public class clear implements com.naef.jnlua.NamedJavaFunction
 	// Function to clear the Clipboard
 	private boolean clearClipboard()
 	{
-		// If we have a valid context
-		if ( CoronaEnvironment.getApplicationContext() != null )
-		{
-			// Get the application context
-			Context context = CoronaEnvironment.getApplicationContext();
+		// Verify environment
+		Context context = CoronaEnvironment.getApplicationContext();
+		if ( context == null ) { return false; }
 
-			// Api levels above or equal to 11
-			if ( android.os.Build.VERSION.SDK_INT >= 11 )
-			{
-				ApiLevel11.clearClipboard( context );
-			}
-			// Api's older than 11
-			else
-			{
-				// Setup a Clipboard manager instance
-				android.text.ClipboardManager clipboardManager;
-				clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
-				// Set the text
-				clipboardManager.setText( "" );
-			}
+		// Api levels above or equal to 11
+		if ( android.os.Build.VERSION.SDK_INT >= 11 )
+		{
+			ApiLevel11.clearClipboard( context );
+		}
+		// Api's older than 11
+		else
+		{
+			// Setup a Clipboard manager instance
+			android.text.ClipboardManager clipboardManager;
+			clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
+			// Set the text
+			clipboardManager.setText( "" );
 		}
 
 		return true;
@@ -100,12 +97,9 @@ public class clear implements com.naef.jnlua.NamedJavaFunction
 	{
 		try
 		{
-			// Corona Activity
-			CoronaActivity coronaActivity = null;
-			if ( CoronaEnvironment.getCoronaActivity() != null )
-			{
-				coronaActivity = CoronaEnvironment.getCoronaActivity();
-			}
+			// Verify environment
+			CoronaActivity coronaActivity = CoronaEnvironment.getCoronaActivity();
+			if ( coronaActivity == null ) { return 0; }
 
 			// Create a new runnable object to invoke our activity
 			Runnable activityRunnable = new Runnable()
@@ -118,10 +112,7 @@ public class clear implements com.naef.jnlua.NamedJavaFunction
 			};
 		    
 		    // Run the activity on the uiThread
-		    if ( coronaActivity != null )
-		    {
-		    		coronaActivity.runOnUiThread( activityRunnable );
-		    }
+			coronaActivity.runOnUiThread( activityRunnable );
 		}
 		catch( Exception ex )
 		{

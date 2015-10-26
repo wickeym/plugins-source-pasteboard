@@ -41,7 +41,7 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 	}
 
 	// Function to see if a string can be resolved to a Url
-	private boolean canStringResolveToURL( String urlString )
+	private static boolean canStringResolveToURL( String urlString )
 	{
 		// If there is no url, just return
 		if ( urlString == null )
@@ -58,7 +58,7 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 			java.net.URL url = new java.net.URL( urlString );
 		}
 		catch ( java.net.MalformedURLException e ) 
-		{  
+		{
 			result = false;
 		}
 
@@ -72,86 +72,47 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 		// The type of data on the clipboard, in string representation
 		String dataType = "none";
 
-		// If we have a valid context
-		if ( CoronaEnvironment.getApplicationContext() != null )
+		// Verify environment
+		Context context = CoronaEnvironment.getApplicationContext();
+		if ( context == null ) { return dataType; }
+
+		// Api levels above or equal to 11
+		if ( android.os.Build.VERSION.SDK_INT >= 11 )
 		{
-			// Get the application context
-			Context context = CoronaEnvironment.getApplicationContext();
+			dataType = ApiLevel11.clipboardContainsDataType( context );
+		}
+		// Api's older than 11
+		else
+		{
+			// Setup a Clipboard manager instance
+			android.text.ClipboardManager clipboardManager;
+			clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
 
-			// Api levels above or equal to 11
-			if ( android.os.Build.VERSION.SDK_INT >= 11 )
+			// If the Clipboard contains text (the only supported type at API level 10 and below)
+			if ( clipboardManager.hasText() )
 			{
-				// Setup a Clipboard manager instance
-				android.content.ClipboardManager clipboardManager;
-				clipboardManager = ( android.content.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
+				// The Clipboard string
+				String clipboardContents = clipboardManager.getText().toString();
 
-				// If the Clipboard contains data
-				if ( clipboardManager.hasPrimaryClip() )
+				// See if we can resolve the clipboardContents to a Url
+				boolean stringCanResolveToUrl = canStringResolveToURL( clipboardContents );
+
+				// If the string resolves to a Url
+				if ( stringCanResolveToUrl )
 				{
-					// If we have a plain text object on the Clipboard
-					if ( clipboardManager.getPrimaryClipDescription().hasMimeType( android.content.ClipDescription.MIMETYPE_TEXT_PLAIN ) )
-					{
-						// Clipdata item
-						android.content.ClipData.Item clipDataItem = clipboardManager.getPrimaryClip().getItemAt( 0 );
-						// The Clipboard string
-						String clipboardContents = clipDataItem.getText().toString();
+					// Set the data type
+					dataType = "url";
 
-						// See if we can resolve the clipboardContents to a Url
-						boolean stringCanResolveToUrl = canStringResolveToURL( clipboardContents );
-
-						// If the string resolves to a Url
-						if ( stringCanResolveToUrl )
-						{
-							// Set the data type
-							dataType = "url";
-
-							// Debug
-							//System.out.println( ">>>> There is a URL on the Clipboard <<<<" );
-						}
-						else
-						{
-							// Set the data type
-							dataType = "string";
-
-							// Debug
-							//System.out.println( ">>>> There is a STRING on the Clipboard <<<<" );
-						}
-					}
+					// Debug
+					//System.out.println( ">>>> There is a URL on the Clipboard <<<<" );
 				}
-			}
-			// Api's older than 11
-			else
-			{
-				// Setup a Clipboard manager instance
-				android.text.ClipboardManager clipboardManager;
-				clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
-
-				// If the Clipboard contains text (the only supported type at API level 10 and below)
-				if ( clipboardManager.hasText() )
+				else
 				{
-					// The Clipboard string
-					String clipboardContents = clipboardManager.getText().toString();
+					// Set the data type
+					dataType = "string";
 
-					// See if we can resolve the clipboardContents to a Url
-					boolean stringCanResolveToUrl = canStringResolveToURL( clipboardContents );
-
-					// If the string resolves to a Url
-					if ( stringCanResolveToUrl )
-					{
-						// Set the data type
-						dataType = "url";
-
-						// Debug
-						//System.out.println( ">>>> There is a URL on the Clipboard <<<<" );
-					}
-					else
-					{
-						// Set the data type
-						dataType = "string";
-
-						// Debug
-						//System.out.println( ">>>>There is a STRING on the Clipboard <<<<" );
-					}
+					// Debug
+					//System.out.println( ">>>>There is a STRING on the Clipboard <<<<" );
 				}
 			}
 		}
@@ -167,6 +128,51 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 		/** Constructor made private to prevent instances from being made. */
 		private ApiLevel11() { }
 
+		// Function to check the data type of the Clipboard object and return the type
+		public static String clipboardContainsDataType( Context context )
+		{
+			// The type of data on the clipboard, in string representation
+			String dataType = "none";
+
+			// Setup a Clipboard manager instance
+			android.content.ClipboardManager clipboardManager;
+			clipboardManager = ( android.content.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
+
+			// If the Clipboard contains data
+			if ( clipboardManager.hasPrimaryClip() )
+			{
+				// Clipdata item
+				android.content.ClipData.Item clipDataItem = clipboardManager.getPrimaryClip().getItemAt( 0 );
+
+				// Grab any content from the clip data item that makes sense to represent as a string.
+				String clipboardContents = shared.ApiLevel11.coerceToString( context, clipDataItem );
+
+				// See if we can resolve the clipboardContents to a Url
+				boolean stringCanResolveToUrl = canStringResolveToURL( clipboardContents );
+
+				// If the string resolves to a Url
+				if ( stringCanResolveToUrl )
+				{
+					// Set the data type
+					dataType = "url";
+
+					// Debug
+					//System.out.println( ">>>> There is a URL on the Clipboard <<<<" );
+				}
+				else
+				{
+					// Set the data type
+					dataType = "string";
+
+					// Debug
+					//System.out.println( ">>>> There is a STRING on the Clipboard <<<<" );
+				}
+			}
+
+			// Return the data type
+			return dataType;
+		}
+
 		// Function to paste a string from the Clipboard
 		public static String pasteStringFromClipboard( Context context )
 		{
@@ -180,14 +186,10 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 			// If the Clipboard contains data
 			if ( clipboardManager.hasPrimaryClip() )
 			{
-				// If we have a plain text object on the Clipboard
-				if ( clipboardManager.getPrimaryClipDescription().hasMimeType( android.content.ClipDescription.MIMETYPE_TEXT_PLAIN ) )
-				{
-					// Create a Clipdata item
-					android.content.ClipData.Item data = clipboardManager.getPrimaryClip().getItemAt( 0 );
-					// Set the result
-					result = data.getText().toString();
-				}
+				// Create a Clipdata item
+				android.content.ClipData.Item data = clipboardManager.getPrimaryClip().getItemAt( 0 );
+				// Grab any content from the clip data item that makes sense to represent as a string.
+				result = shared.ApiLevel11.coerceToString( context, data );
 			}
 
 			return result;
@@ -201,27 +203,24 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 		// The resulting string from the Clipboard
 		String result = null;
 
-		// If we have a valid context
-		if ( CoronaEnvironment.getApplicationContext() != null )
-		{
-			// Get the application context
-			Context context = CoronaEnvironment.getApplicationContext();
+		// Verify environment
+		Context context = CoronaEnvironment.getApplicationContext();
+		if ( context == null ) { return null; }
 
-			// Api levels above or equal to 11
-			if ( android.os.Build.VERSION.SDK_INT >= 11 )
+		// Api levels above or equal to 11
+		if ( android.os.Build.VERSION.SDK_INT >= 11 )
+		{
+			result = ApiLevel11.pasteStringFromClipboard( context );
+		}
+		// Api's older than 11
+		else
+		{
+			// Setup a Clipboard manager instance
+			android.text.ClipboardManager clipboardManager;
+			clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
+			if ( clipboardManager.hasText() )
 			{
-				result = ApiLevel11.pasteStringFromClipboard( context );
-			}
-			// Api's older than 11
-			else
-			{
-				// Setup a Clipboard manager instance
-				android.text.ClipboardManager clipboardManager;
-				clipboardManager = ( android.text.ClipboardManager )context.getSystemService( Context.CLIPBOARD_SERVICE );
-				if ( clipboardManager.hasText() )
-				{
-					result = clipboardManager.getText().toString();
-				}
+				result = clipboardManager.getText().toString();
 			}
 		}
 
@@ -305,12 +304,9 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 				fListener = CoronaLua.REFNIL;
 			}
 
-			// Corona Activity
-			CoronaActivity coronaActivity = null;
-			if ( CoronaEnvironment.getCoronaActivity() != null )
-			{
-				coronaActivity = CoronaEnvironment.getCoronaActivity();
-			}
+			// Verify environment
+			CoronaActivity coronaActivity = CoronaEnvironment.getCoronaActivity();
+			if ( coronaActivity == null ) { return 0; }
 
 			// Corona runtime task dispatcher
 			final CoronaRuntimeTaskDispatcher dispatcher = new CoronaRuntimeTaskDispatcher( luaState );
@@ -357,11 +353,7 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 				}
 			};
 
-			// Run the activity on the uiThread
-			if ( coronaActivity != null )
-			{
-				coronaActivity.runOnUiThread( runnableActivity );
-			}
+			coronaActivity.runOnUiThread( runnableActivity );
 		}
 		catch( Exception ex )
 		{

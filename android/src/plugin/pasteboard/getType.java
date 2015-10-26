@@ -24,8 +24,6 @@ import com.naef.jnlua.LuaState;
 import com.naef.jnlua.LuaType;
 
 // Corona Imports
-import com.ansca.corona.CoronaActivity;
-import com.ansca.corona.CoronaEnvironment;
 import com.ansca.corona.CoronaLua;
 import com.ansca.corona.CoronaRuntime;
 import com.ansca.corona.CoronaRuntimeListener;
@@ -87,7 +85,7 @@ public class getType implements com.naef.jnlua.NamedJavaFunction
 	@Override
 	public int invoke( final LuaState luaState ) 
 	{
-		final String dataType = shared.currentPasteboardItem;
+		final String dataType = shared.getCurrentPasteboardItem();
 
 		// If there is no data on the Clipboard, push nil
 		if (  dataType == null || dataType.equalsIgnoreCase( "" )  )
