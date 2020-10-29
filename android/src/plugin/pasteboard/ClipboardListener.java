@@ -74,6 +74,7 @@ public class ClipboardListener
 		// Function to remove the clipChanged listener
 		public static boolean removeClipChangedListener()
 		{
+			if ( clipboardManager == null || primaryClipChangedListener == null) { return false; }
 			// Remove the clip listener
 			clipboardManager.removePrimaryClipChangedListener( primaryClipChangedListener );
 			return true;
