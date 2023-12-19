@@ -83,7 +83,7 @@ public class shared
 
 				// If empty string was found, determine if it was intentional or
 				// a result of no data being found.
-				if ( coercedClipDataItem.equals("")
+				if ( "".equals(coercedClipDataItem)
 						&& plainText == null
 						&& uri == null
 						&& intent == null )
@@ -151,7 +151,7 @@ public class shared
 
 			// If empty string was found, determine if it was intentional or
 			// a result of no data being found.
-			if ( coercedClipDataItem.equals("")
+			if ( "".equals(coercedClipDataItem)
 					&& htmlText == null
 					&& plainText == null
 					&& uri == null

@@ -320,19 +320,19 @@ public class paste implements com.naef.jnlua.NamedJavaFunction
 					String pasteType = clipboardContainsDataType();
 
 					// If the pasteType isn't "none"
-					if ( ! pasteType.equalsIgnoreCase( "none" ) )
+					if ( ! "none".equalsIgnoreCase (pasteType ) )
 					{
 						// If we are allowed to paste
 						boolean canPaste = true;
 
 						// If the paste type is "string" and we are not allowed to paste "strings", set the canPasteString to false
-						if ( pasteType.equalsIgnoreCase( "string" ) && !shared.canPasteString ) 
+						if ( "string".equalsIgnoreCase (pasteType ) && !shared.canPasteString ) 
 						{
 							canPaste = false;
 						}
 
 						// If the paste type is "url" and we are not allowed to paste "urls", set the canPasteUrl to false
-						else if ( pasteType.equalsIgnoreCase( "url" ) && !shared.canPasteUrl ) 
+						else if ( "url".equalsIgnoreCase (pasteType ) && !shared.canPasteUrl ) 
 						{
 							canPaste = false;
 						}

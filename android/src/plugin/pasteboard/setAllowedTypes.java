@@ -70,13 +70,13 @@ public class setAllowedTypes implements com.naef.jnlua.NamedJavaFunction
 					final String type = luaState.toString( -1 );
 
 					// If the type is "string", allow pasting of strings
-					if ( type.equalsIgnoreCase( "string" ) )
+					if ( "string".equalsIgnoreCase (type ) )
 					{
 						shared.canPasteString = true;
 					}
 
 					// If the type is "url", allow pasting of Url's
-					if ( type.equalsIgnoreCase( "url" )  )
+					if ( "url".equalsIgnoreCase (type )  )
 					{
 						shared.canPasteUrl = true;
 					}

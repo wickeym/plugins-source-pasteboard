@@ -111,7 +111,7 @@ public class copy implements com.naef.jnlua.NamedJavaFunction
 			if ( coronaActivity == null ) { return 0; }
 
 			// If we are copying a String or Url
-			if ( copyType.equalsIgnoreCase( "string" ) || copyType.equalsIgnoreCase( "url" ) )
+			if ( "string".equalsIgnoreCase (copyType ) || "url".equalsIgnoreCase (copyType ) )
 			{
 				// The string/url the user wishes to copy to the Clipboard
 				final String stringToCopy = luaState.checkString( 2 );				

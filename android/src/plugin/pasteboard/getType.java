@@ -88,7 +88,7 @@ public class getType implements com.naef.jnlua.NamedJavaFunction
 		final String dataType = shared.getCurrentPasteboardItem();
 
 		// If there is no data on the Clipboard, push nil
-		if (  dataType == null || dataType.equalsIgnoreCase( "" )  )
+		if (  dataType == null || "".equalsIgnoreCase (dataType )  )
 		{
 			luaState.pushNil();
 		}
